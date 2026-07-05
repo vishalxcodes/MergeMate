@@ -2,11 +2,11 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: Arial, sans-serif;
+  font-family: "Segoe UI", Arial, sans-serif;
 }
 
 body {
-  background: #f3f4f6;
+  background: linear-gradient(135deg, #eef2ff, #f8fafc);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -14,39 +14,101 @@ body {
 }
 
 .container {
-  width: 420px;
+  width: 100%;
+  max-width: 500px;
   background: white;
-  padding: 30px;
-  border-radius: 16px;
+  padding: 35px;
+  border-radius: 20px;
+  box-shadow: 0 15px 40px rgba(0,0,0,.08);
   text-align: center;
-  box-shadow: 0 10px 30px rgba(0,0,0,.12);
 }
 
 h1 {
+  font-size: 32px;
+  color: #1e293b;
   margin-bottom: 10px;
 }
 
 p {
-  color: #666;
+  color: #64748b;
   margin-bottom: 25px;
 }
 
-input {
+input[type="file"] {
   width: 100%;
+  padding: 15px;
+  border: 2px dashed #2563eb;
+  border-radius: 12px;
+  background: #f8fafc;
+  cursor: pointer;
   margin-bottom: 20px;
+}
+
+input[type="file"]:hover {
+  background: #eff6ff;
 }
 
 button {
   width: 100%;
-  padding: 14px;
+  padding: 15px;
   border: none;
-  border-radius: 10px;
+  border-radius: 12px;
   background: #2563eb;
   color: white;
-  font-size: 16px;
+  font-size: 17px;
+  font-weight: 600;
   cursor: pointer;
+  transition: .25s;
 }
 
 button:hover {
   background: #1d4ed8;
+  transform: translateY(-2px);
+}
+
+button:active {
+  transform: scale(.98);
+}
+
+.footer {
+  margin-top: 25px;
+  font-size: 14px;
+  color: #94a3b8;
+}
+#fileList{
+    margin-bottom:20px;
+    text-align:left;
+}
+
+.file-item{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:12px;
+    margin-bottom:10px;
+    border-radius:10px;
+    background:#f8fafc;
+    border:1px solid #e2e8f0;
+    font-size:15px;
+}
+
+.file-name{
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+}
+
+.remove-btn{
+    background:#ef4444;
+    color:white;
+    border:none;
+    width:34px;
+    height:34px;
+    border-radius:8px;
+    cursor:pointer;
+    font-weight:bold;
+}
+
+.remove-btn:hover{
+    background:#dc2626;
 }
