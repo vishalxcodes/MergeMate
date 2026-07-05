@@ -29,7 +29,9 @@ export async function mergePDFs(files) {
     const a = document.createElement("a");
 
     a.href = url;
-    a.download = "merged.pdf";
+   const today = new Date().toISOString().split("T")[0];
+
+    a.download = `MergeMate-${today}.pdf`;
 
     a.click();
 

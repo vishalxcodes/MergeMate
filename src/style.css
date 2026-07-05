@@ -112,3 +112,44 @@ button:active {
 .remove-btn:hover{
     background:#dc2626;
 }
+button:disabled{
+    background:#94a3b8;
+    cursor:not-allowed;
+}
+#dropZone{
+    border:2px dashed #2563eb;
+    border-radius:12px;
+    padding:35px 20px;
+    margin-bottom:20px;
+    background:#f8fafc;
+    cursor:pointer;
+    transition:.3s;
+    position:relative;
+}
+
+#dropZone:hover{
+    background:#eff6ff;
+}
+
+#dropZone.dragover{
+    background:#dbeafe;
+    border-color:#1d4ed8;
+}
+
+#dropZone input{
+    position:absolute;
+    inset:0;
+    opacity:0;
+    cursor:pointer;
+}
+
+#dropZone p{
+    margin-bottom:8px;
+    font-weight:bold;
+    color:#1e293b;
+}
+
+#dropZone span{
+    color:#64748b;
+    font-size:14px;
+}
