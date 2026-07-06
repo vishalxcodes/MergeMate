@@ -1,5 +1,6 @@
 import './style.css';
 import { mergePDFs } from "./pdf";
+import { splitPDF } from "./split";
 
 document.querySelector('#app').innerHTML = `
   <div class="container">
@@ -24,6 +25,16 @@ document.querySelector('#app').innerHTML = `
     <button id="mergeBtn">
       Merge PDFs
     </button>
+
+    <input
+    type="number"
+    id="splitPage"
+    placeholder="Split after page (e.g. 5)"
+    min="1"
+/>
+    <button id="splitBtn">
+  ✂️ Split PDF
+</button>
     <div class="footer">
     🔒 No Upload • No Watermark • Free Forever
 </div>
@@ -59,6 +70,7 @@ function renderFileList() {
 }
 const pdfInput = document.getElementById("pdfInput");
 const mergeBtn = document.getElementById("mergeBtn");
+const splitBtn = document.getElementById("splitBtn");
 const fileList = document.getElementById("fileList");
 const dropZone = document.getElementById("dropZone");
 
@@ -151,6 +163,24 @@ function updateMergeButton() {
     }
 
 }
+
+splitBtn.addEventListener("click", async () => {
+
+    if (selectedFiles.length !== 1) {
+        alert("Please select exactly one PDF.");
+        return;
+    }
+
+    const splitPage = parseInt(document.getElementById("splitPage").value);
+
+    if (isNaN(splitPage)) {
+        alert("Please enter a valid page number.");
+        return;
+    }
+
+    await splitPDF(selectedFiles[0], splitPage);
+
+});
 
 
 
