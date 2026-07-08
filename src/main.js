@@ -1,6 +1,7 @@
 import './style.css';
 import { mergePDFs } from "./pdf";
 import { splitPDF } from "./split";
+import { deletePage } from "./delete";
 
 document.querySelector('#app').innerHTML = `
   <div class="container">
@@ -34,6 +35,17 @@ document.querySelector('#app').innerHTML = `
 />
     <button id="splitBtn">
   ✂️ Split PDF
+</button>
+
+<input
+    type="text"
+    id="deletePageInput"
+   placeholder="Delete pages (e.g. 2,4,7 or 5-10)"
+    min="1"
+/>
+
+<button id="deleteBtn">
+    🗑 Delete Page
 </button>
     <div class="footer">
     🔒 No Upload • No Watermark • Free Forever
@@ -71,6 +83,7 @@ function renderFileList() {
 const pdfInput = document.getElementById("pdfInput");
 const mergeBtn = document.getElementById("mergeBtn");
 const splitBtn = document.getElementById("splitBtn");
+const deleteBtn = document.getElementById("deleteBtn");
 const fileList = document.getElementById("fileList");
 const dropZone = document.getElementById("dropZone");
 
@@ -164,6 +177,8 @@ function updateMergeButton() {
 
 }
 
+
+
 splitBtn.addEventListener("click", async () => {
 
     if (selectedFiles.length !== 1) {
@@ -182,6 +197,27 @@ splitBtn.addEventListener("click", async () => {
 
 });
 
+
+deleteBtn.addEventListener("click", async () => {
+
+    if (selectedFiles.length !== 1) {
+        alert("Please select exactly one PDF.");
+        return;
+    }
+
+    const pages = document
+    .getElementById("deletePageInput")
+    .value
+    .trim();
+
+if (!pages) {
+    alert("Please enter page numbers.");
+    return;
+}
+
+await deletePage(selectedFiles[0], pages);
+
+});
 
 
 mergeBtn.addEventListener("click", async () => {

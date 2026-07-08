@@ -170,3 +170,29 @@ button:disabled{
     border-radius:10px;
     font-size:16px;
 }
+#deletePageInput{
+    width:100%;
+    padding:12px;
+    margin-top:16px;
+    margin-bottom:16px;
+    border:1px solid #d1d5db;
+    border-radius:10px;
+    font-size:16px;
+}
+
+#deleteBtn{
+    width:100%;
+    padding:14px;
+    margin-top:16px;
+    border:none;
+    border-radius:10px;
+    background:linear-gradient(135deg,#EF4444,#DC2626);
+    color:white;
+    font-size:16px;
+    cursor:pointer;
+    transition:.3s;
+}
+
+#deleteBtn:hover{
+    background:linear-gradient(135deg,#DC2626,#B91C1C);
+}
