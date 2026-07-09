@@ -196,3 +196,28 @@ button:disabled{
 #deleteBtn:hover{
     background:linear-gradient(135deg,#DC2626,#B91C1C);
 }
+#extractPageInput{
+    width:100%;
+    padding:12px;
+    margin-top:16px;
+    margin-bottom:16px;
+    border:1px solid #d1d5db;
+    border-radius:10px;
+    font-size:16px;
+}
+
+#extractBtn{
+    width:100%;
+    padding:14px;
+    margin-top:16px;
+    border:none;
+    border-radius:10px;
+    background:linear-gradient(135deg,#10B981,#059669);
+    color:white;
+    font-size:16px;
+    cursor:pointer;
+}
+
+#extractBtn:hover{
+    background:linear-gradient(135deg,#059669,#047857);
+}

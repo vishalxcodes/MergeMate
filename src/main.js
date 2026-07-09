@@ -2,6 +2,7 @@ import './style.css';
 import { mergePDFs } from "./pdf";
 import { splitPDF } from "./split";
 import { deletePage } from "./delete";
+import { extractPages } from "./extract";
 
 document.querySelector('#app').innerHTML = `
   <div class="container">
@@ -47,6 +48,15 @@ document.querySelector('#app').innerHTML = `
 <button id="deleteBtn">
     🗑 Delete Page
 </button>
+<input
+    type="text"
+    id="extractPageInput"
+    placeholder="Extract pages (e.g. 1,3,5-7)"
+>
+
+<button id="extractBtn">
+    📑 Extract Pages
+</button>
     <div class="footer">
     🔒 No Upload • No Watermark • Free Forever
 </div>
@@ -86,6 +96,7 @@ const splitBtn = document.getElementById("splitBtn");
 const deleteBtn = document.getElementById("deleteBtn");
 const fileList = document.getElementById("fileList");
 const dropZone = document.getElementById("dropZone");
+const extractBtn = document.getElementById("extractBtn");
 
 pdfInput.addEventListener("change", () => {
 
@@ -241,5 +252,26 @@ mergeBtn.addEventListener("click", async () => {
         updateMergeButton();
 
     }
+
+});
+
+extractBtn.addEventListener("click", async () => {
+
+    if (selectedFiles.length !== 1) {
+        alert("Please select exactly one PDF.");
+        return;
+    }
+
+    const pages = document
+        .getElementById("extractPageInput")
+        .value
+        .trim();
+
+    if (!pages) {
+        alert("Please enter page numbers.");
+        return;
+    }
+
+    await extractPages(selectedFiles[0], pages);
 
 });
