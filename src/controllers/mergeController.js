@@ -65,9 +65,21 @@ export function initMergeView() {
 
     pdfInput.addEventListener("change", () => {
 
-        selectedFiles = [...pdfInput.files].filter(
-            file => file.type === "application/pdf"
-        );
+       selectedFiles = [
+    ...selectedFiles,
+    ...[...pdfInput.files].filter(
+        file => file.type === "application/pdf"
+    )
+];
+
+selectedFiles = selectedFiles.filter(
+    (file, index, self) =>
+        index === self.findIndex(
+            f =>
+                f.name === file.name &&
+                f.size === file.size
+        )
+);
 
         renderFileList();
         attachRemoveEvents();
@@ -94,9 +106,20 @@ export function initMergeView() {
 
         dropZone.classList.remove("dragover");
 
-        selectedFiles = [...e.dataTransfer.files].filter(
-            file => file.type === "application/pdf"
-        );
+       selectedFiles = [
+    ...selectedFiles,
+    ...[...e.dataTransfer.files].filter(
+        file => file.type === "application/pdf"
+    )
+];
+selectedFiles = selectedFiles.filter(
+    (file, index, self) =>
+        index === self.findIndex(
+            f =>
+                f.name === file.name &&
+                f.size === file.size
+        )
+);
 
         renderFileList();
         attachRemoveEvents();
@@ -116,15 +139,23 @@ export function initMergeView() {
         mergeBtn.disabled = true;
         mergeBtn.textContent = "⏳ Merging...";
 
-        try {
+       try {
 
-            await mergePDFs(selectedFiles);
+    await mergePDFs(selectedFiles);
 
-        } finally {
+    alert("✅ PDF merged successfully!");
 
-            updateMergeButton();
+} catch (error) {
 
-        }
+    alert("❌ Something went wrong while merging.");
+
+    console.error(error);
+
+} finally {
+
+    updateMergeButton();
+
+}
 
     });
 

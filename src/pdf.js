@@ -26,15 +26,19 @@ export async function mergePDFs(files) {
 
     const url = URL.createObjectURL(blob);
 
-    const a = document.createElement("a");
+   const a = document.createElement("a");
 
-    a.href = url;
-   const today = new Date().toISOString().split("T")[0];
+a.href = url;
 
-    a.download = `MergeMate-${today}.pdf`;
+const today = new Date().toISOString().split("T")[0];
 
-    a.click();
+a.download = `MergeMate-${today}.pdf`;
 
-    URL.revokeObjectURL(url);
+document.body.appendChild(a);
 
+a.click();
+
+a.remove();
+
+setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
