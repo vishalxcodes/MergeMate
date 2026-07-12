@@ -1,32 +1,6 @@
 import { PDFDocument } from "pdf-lib";
+import { parsePages } from "./utils/pageParser";
 
-function parsePages(input) {
-
-    const pages = [];
-
-    const parts = input.split(",");
-
-    for (const part of parts) {
-
-        if (part.includes("-")) {
-
-            const [start, end] = part.split("-").map(Number);
-
-            for (let i = start; i <= end; i++) {
-                pages.push(i);
-            }
-
-        } else {
-
-            pages.push(Number(part));
-
-        }
-
-    }
-
-    return [...new Set(pages)];
-
-}
 
 export async function deletePage(file, pageNumber) {
 

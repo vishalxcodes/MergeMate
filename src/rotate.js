@@ -1,8 +1,7 @@
-import { PDFDocument } from "pdf-lib";
+import { PDFDocument, degrees } from "pdf-lib";
 import { parsePages } from "./utils/pageParser";
 
-
-export async function extractPages(file, pageInput) {
+export async function rotatePages(file, pageInput, angle) {
 
     const arrayBuffer = await file.arrayBuffer();
 
@@ -10,9 +9,9 @@ export async function extractPages(file, pageInput) {
 
     const totalPages = pdf.getPageCount();
 
-    const pagesToExtract = parsePages(pageInput);
+    const pages = parsePages(pageInput);
 
-    for (const page of pagesToExtract) {
+    for (const page of pages) {
 
         if (page < 1 || page > totalPages) {
             alert(`Page ${page} doesn't exist.`);
@@ -21,16 +20,15 @@ export async function extractPages(file, pageInput) {
 
     }
 
-    const newPdf = await PDFDocument.create();
+    pages.forEach((page) => {
 
-    const copiedPages = await newPdf.copyPages(
-        pdf,
-        pagesToExtract.map(page => page - 1)
-    );
+        const pdfPage = pdf.getPage(page - 1);
 
-    copiedPages.forEach(page => newPdf.addPage(page));
+        pdfPage.setRotation(degrees(angle));
 
-    const pdfBytes = await newPdf.save();
+    });
+
+    const pdfBytes = await pdf.save();
 
     const blob = new Blob([pdfBytes], {
         type: "application/pdf"
@@ -41,7 +39,7 @@ export async function extractPages(file, pageInput) {
     const a = document.createElement("a");
 
     a.href = url;
-    a.download = "MergeMate-Extracted.pdf";
+    a.download = "MergeMate-Rotated.pdf";
 
     a.click();
 
