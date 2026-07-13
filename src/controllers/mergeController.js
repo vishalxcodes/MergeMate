@@ -1,4 +1,5 @@
 import { mergePDFs } from "../pdf";
+import Sortable from "sortablejs";
 
 let selectedFiles = [];
 
@@ -8,6 +9,9 @@ export function initMergeView() {
     const mergeBtn = document.getElementById("mergeBtn");
     const fileList = document.getElementById("fileList");
     const dropZone = document.getElementById("dropZone");
+    const progressContainer = document.getElementById("progressContainer");
+    const progressFill = document.getElementById("progressFill");
+    const progressText = document.getElementById("progressText");
 
     function renderFileList() {
 
@@ -19,16 +23,34 @@ export function initMergeView() {
 
             fileList.innerHTML += `
                 <div class="file-item">
-                    <span class="file-name">
-                        📄 ${file.name}<br>
-                        <small>${fileSize} MB</small>
-                    </span>
+                  <div class="file-content">
 
-                    <button class="remove-btn" data-index="${index}">
-                        ×
-                    </button>
+    <span class="drag-handle">☰</span>
+
+    <span class="file-name">
+        📄 ${file.name}<br>
+        <small>${fileSize} MB</small>
+    </span>
+
+</div>
+
+<button class="remove-btn" data-index="${index}">
+    ×
+</button>
                 </div>
             `;
+            new Sortable(fileList, {
+    animation: 200,
+    handle: ".drag-handle",
+
+    onEnd: (evt) => {
+
+        const movedFile = selectedFiles.splice(evt.oldIndex, 1)[0];
+
+        selectedFiles.splice(evt.newIndex, 0, movedFile);
+
+    }
+});
 
         });
 
@@ -138,20 +160,39 @@ selectedFiles = selectedFiles.filter(
 
         mergeBtn.disabled = true;
         mergeBtn.textContent = "⏳ Merging...";
+        progressContainer.style.display = "block";
+        progressText.style.display = "block";
+
+        progressFill.style.width = "20%";
+        progressText.textContent = "Preparing PDFs...";
 
        try {
+     progressFill.style.width = "70%";
+    progressText.textContent = "Merging PDFs...";
 
     await mergePDFs(selectedFiles);
 
-    alert("✅ PDF merged successfully!");
+    progressFill.style.width = "100%";
+    progressText.textContent = "Finalizing...";
+
+    window.showToast("✅ PDF merged successfully!");
 
 } catch (error) {
 
-    alert("❌ Something went wrong while merging.");
+    window.showToast("❌ Something went wrong while merging.", "error");
 
     console.error(error);
 
 } finally {
+
+    setTimeout(() => {
+
+        progressContainer.style.display = "none";
+        progressText.style.display = "none";
+
+        progressFill.style.width = "0%";
+
+    }, 800);
 
     updateMergeButton();
 

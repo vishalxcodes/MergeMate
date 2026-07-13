@@ -36,11 +36,19 @@ export function renderMergeView() {
 
         </div>
 
-        <div id="fileList"></div>
+       <div id="fileList"></div>
 
-        <button id="mergeBtn">
-            Merge PDFs
-        </button>
+<div class="progress-container" id="progressContainer">
+    <div class="progress-fill" id="progressFill"></div>
+</div>
+
+<div class="progress-text" id="progressText">
+    Preparing...
+</div>
+
+<button id="mergeBtn">
+    Merge PDFs
+</button>
 
     </div>
 

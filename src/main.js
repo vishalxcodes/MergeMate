@@ -18,6 +18,32 @@ import { initRotateView } from "./controllers/rotateController";
 
 const app = document.querySelector("#app");
 
+function showToast(message, type = "success") {
+
+    const toast = document.createElement("div");
+
+    toast.className = `toast ${type}`;
+
+    toast.textContent = message;
+
+    document.body.appendChild(toast);
+
+    requestAnimationFrame(() => {
+        toast.classList.add("show");
+    });
+
+    setTimeout(() => {
+        toast.classList.remove("show");
+
+        setTimeout(() => {
+            toast.remove();
+        }, 350);
+
+    }, 2500);
+
+}
+window.showToast = showToast;
+
 showDashboard();
 
 function showDashboard() {
