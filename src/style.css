@@ -609,3 +609,414 @@ body.dark .file-item{
     transform:scale(1.02);
     transition:.15s;
 }
+/* ===========================
+   Student Mode Card
+=========================== */
+
+.student-mode-card{
+
+    margin-top:30px;
+
+    padding:22px;
+
+    border-radius:18px;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:space-between;
+
+    cursor:pointer;
+
+    background:linear-gradient(135deg,#4F46E5,#7C3AED);
+
+    color:white;
+
+    box-shadow:0 12px 30px rgba(79,70,229,.25);
+
+    transition:.35s ease;
+
+    overflow:hidden;
+
+    position:relative;
+
+}
+
+.student-mode-card::before{
+
+    content:"";
+
+    position:absolute;
+
+    width:220px;
+
+    height:220px;
+
+    background:rgba(255,255,255,.08);
+
+    border-radius:50%;
+
+    top:-100px;
+
+    right:-60px;
+
+}
+
+.student-mode-card:hover{
+
+    transform:translateY(-6px);
+
+    box-shadow:0 18px 40px rgba(79,70,229,.35);
+
+}
+
+.student-icon{
+
+    font-size:42px;
+
+}
+
+.student-info{
+
+    flex:1;
+
+    margin-left:18px;
+
+}
+
+.student-info h2{
+
+    margin:0;
+color:#ffffff;
+    font-size:22px;
+
+}
+
+.student-info p{
+
+    margin-top:6px;
+
+    opacity:.9;
+
+    font-size:14px;
+    
+     color:rgba(255,255,255,.9);
+}
+
+.student-arrow{
+
+    font-size:34px;
+
+    font-weight:bold;
+
+    transition:.3s;
+   
+    color:#ffffff;
+}
+
+.student-mode-card:hover .student-arrow{
+
+    transform:translateX(8px);
+
+}
+#exitStudentMode{
+
+    padding:10px 18px;
+
+    border:none;
+
+    border-radius:999px;
+
+    background:#ffffff;
+
+    color:#4F46E5;
+
+    font-weight:600;
+
+    cursor:pointer;
+
+    transition:.25s;
+
+    font-size:14px;
+
+}
+
+#exitStudentMode:hover{
+
+    transform:translateY(-2px);
+
+    background:#f3f4f6;
+
+}
+
+/* ==========================
+   Student Header
+========================== */
+
+.student-header{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:flex-start;
+
+    background:linear-gradient(135deg,#4F46E5,#6D28D9);
+
+    border-radius:22px;
+
+    padding:24px;
+
+    margin-bottom:28px;
+
+    color:white;
+
+    box-shadow:0 15px 35px rgba(79,70,229,.25);
+
+}
+
+.student-title h1{
+
+    margin:10px 0 8px;
+
+    font-size:34px;
+
+    color:white;
+
+}
+
+.student-title p{
+
+    margin:0;
+
+    color:rgba(255,255,255,.9);
+
+}
+
+.student-badge{
+
+    display:inline-block;
+
+    padding:6px 14px;
+
+    border-radius:999px;
+
+    background:rgba(255,255,255,.15);
+
+    font-size:12px;
+
+    font-weight:700;
+
+    letter-spacing:1px;
+
+}
+
+#exitStudentMode{
+
+    background:transparent;
+
+    border:none;
+
+    color:white;
+
+    font-size:15px;
+
+    font-weight:600;
+
+    cursor:pointer;
+
+    transition:.25s;
+
+}
+
+#exitStudentMode:hover{
+
+    transform:translateX(-4px);
+
+    opacity:.85;
+
+    color: rgb(46, 44, 44);
+
+}
+/* =======================
+   Page Animation
+======================= */
+
+.page-enter{
+
+    animation:pageFade .35s ease;
+
+}
+
+@keyframes pageFade{
+
+    from{
+
+        opacity:0;
+
+        transform:translateY(18px);
+
+    }
+
+    to{
+
+        opacity:1;
+
+        transform:translateY(0);
+
+    }
+
+}
+.click-scale{
+
+    animation:clickScale .25s ease;
+
+}
+
+@keyframes clickScale{
+
+    0%{
+
+        transform:scale(1);
+
+    }
+
+    50%{
+
+        transform:scale(.97);
+
+    }
+
+    100%{
+
+        transform:scale(1);
+
+    }
+
+}
+/* ==========================
+   Student Mode Themes
+========================== */
+
+/* Light Student */
+
+/* ==========================
+   Student Mode Background
+========================== */
+
+body.student-mode:not(.dark){
+
+    background:linear-gradient(
+        180deg,
+        #eef4ff 0%,
+        #f8fbff 100%
+    );
+
+}
+
+body.student-mode.dark{
+
+    background:
+    radial-gradient(
+        circle at top,
+        #1d4ed8 0%,
+        #0f172a 55%,
+        #020617 100%
+    );
+
+}
+.student-welcome{
+
+    margin-bottom:28px;
+
+}
+
+.student-welcome h2{
+
+    margin:0;
+
+    font-size:28px;
+
+}
+
+.student-welcome p{
+
+    margin-top:8px;
+
+    color:var(--text-secondary,#9ca3af);
+
+    font-size:15px;
+
+}
+/* Light Student Header */
+
+body.student-mode:not(.dark) .student-header{
+
+    background:linear-gradient(
+        135deg,
+        #4f46e5,
+        #6366f1
+    );
+
+    color:white;
+
+
+}
+/* Student Light Theme */
+
+body.student-mode:not(.dark) .student-welcome h2{
+
+    color:#111827;
+
+}
+
+body.student-mode:not(.dark) .student-welcome p{
+
+    color:#6b7280;
+
+}
+
+/* Student Dark Theme */
+
+body.student-mode.dark .student-welcome h2{
+
+    color:#ffffff;
+
+}
+
+body.student-mode.dark .student-welcome p{
+
+    color:#cbd5e1;
+
+}
+/* Student Light Cards */
+
+body.student-mode:not(.dark) .tool-card{
+
+    background:#fff;
+
+    border:1px solid #dbeafe;
+
+    box-shadow:0 8px 20px rgba(79,70,229,.08);
+
+}
+
+body.student-mode:not(.dark) .tool-card h3{
+
+    color:#111827;
+
+}
+
+body.student-mode:not(.dark) .tool-card p{
+
+    color:#6b7280;
+
+}
+body.student-mode:not(.dark) .icon{
+
+    background:#eef2ff;
+
+    border-radius:12px;
+
+}

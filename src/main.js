@@ -14,6 +14,8 @@ import { renderExtractView } from "./views/extractView";
 import { initExtractView } from "./controllers/extractController";
 import { renderRotateView } from "./views/rotateView";
 import { initRotateView } from "./controllers/rotateController";
+import { renderStudentDashboard } from "./views/studentDashboard";
+import { saveRecentTool } from "./utils/recentTool";
 
 
 const app = document.querySelector("#app");
@@ -47,10 +49,33 @@ window.showToast = showToast;
 showDashboard();
 
 function showDashboard() {
+    document.body.classList.remove("student-mode");
 
     app.innerHTML = renderDashboard();
 
+    app.classList.add("page-enter");
+
+    setTimeout(() => {
+
+        app.classList.remove("page-enter");
+
+    },350);
+
     initTheme();
+
+}
+function showStudentDashboard() {
+
+    app.innerHTML = renderStudentDashboard();
+    document.body.classList.add("student-mode");
+
+    app.classList.add("page-enter");
+
+    setTimeout(()=>{
+
+        app.classList.remove("page-enter");
+
+    },350);
 
 }
 
@@ -91,36 +116,60 @@ function initTheme() {
 
 document.addEventListener("click", (e) => {
 
-    if (e.target.closest('[data-tool="merge"]')) {
+   if (e.target.closest("#studentModeBtn")) {
 
+    const card = e.target.closest("#studentModeBtn");
+
+    card.classList.add("click-scale");
+
+    setTimeout(()=>{
+
+        showStudentDashboard();
+
+    },180);
+
+}
+
+if (e.target.closest("#exitStudentMode")) {
+
+    setTimeout(()=>{
+
+        showDashboard();
+
+    },120);
+
+}
+
+    if (e.target.closest('[data-tool="merge"]')) {
+        saveRecentTool("merge", "Merge Assignment");
         app.innerHTML = renderMergeView();
 
         initMergeView();
 
     }
     if (e.target.closest('[data-tool="split"]')) {
-
+        saveRecentTool("split","Split PDF");
     app.innerHTML = renderSplitView();
 
     initSplitView();
 
 }
 if (e.target.closest('[data-tool="delete"]')) {
-
+      saveRecentTool("delete","Delete Pages");
     app.innerHTML = renderDeleteView();
 
     initDeleteView();
 
 }
 if (e.target.closest('[data-tool="extract"]')) {
-
+    saveRecentTool("extract","Extract Pages");
     app.innerHTML = renderExtractView();
 
     initExtractView();
 
 }
 if (e.target.closest('[data-tool="rotate"]')) {
-
+    saveRecentTool("rotate","Rotate PDF");
     app.innerHTML = renderRotateView();
 
     initRotateView();
@@ -131,6 +180,8 @@ if (e.target.closest('[data-tool="rotate"]')) {
 
         showDashboard();
 
-    }
+        
+}
 
 });
+

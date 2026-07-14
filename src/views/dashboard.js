@@ -46,6 +46,27 @@ export function renderDashboard() {
         </div>
 
       </div>
+      <div class="student-mode-card" id="studentModeBtn">
+
+  <div class="student-icon">
+    🎓
+  </div>
+
+  <div class="student-info">
+
+    <h2>Enter Student Mode</h2>
+
+    <p>
+      Assignments • Notes • Semester Work
+    </p>
+
+  </div>
+
+  <div class="student-arrow">
+    →
+  </div>
+
+</div>
 
     </div>
   `;

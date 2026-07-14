@@ -43,6 +43,10 @@ export function initMergeView() {
     animation: 200,
     handle: ".drag-handle",
 
+     delayOnTouchOnly: true,
+    delay: 150,
+    touchStartThreshold: 5,
+
     onEnd: (evt) => {
 
         const movedFile = selectedFiles.splice(evt.oldIndex, 1)[0];
