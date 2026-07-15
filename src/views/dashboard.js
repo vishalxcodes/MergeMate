@@ -46,6 +46,15 @@ export function renderDashboard() {
         </div>
 
       </div>
+      <div class="tool-card" data-tool="imagepdf">
+
+<div class="icon">🖼</div>
+
+<h3>Images → PDF</h3>
+
+<p>Convert photos into PDF</p>
+
+</div>
       <div class="student-mode-card" id="studentModeBtn">
 
   <div class="student-icon">

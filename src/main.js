@@ -16,7 +16,8 @@ import { renderRotateView } from "./views/rotateView";
 import { initRotateView } from "./controllers/rotateController";
 import { renderStudentDashboard } from "./views/studentDashboard";
 import { saveRecentTool } from "./utils/recentTool";
-
+import { renderImageToPdfView } from "./views/imageToPdfView";
+import { initImageToPdf } from "./controllers/imageToPdfController";
 
 const app = document.querySelector("#app");
 
@@ -115,6 +116,14 @@ function initTheme() {
 }
 
 document.addEventListener("click", (e) => {
+
+    if(e.target.closest('[data-tool="imagepdf"]')){
+
+app.innerHTML=renderImageToPdfView();
+
+initImageToPdf();
+
+}
 
    if (e.target.closest("#studentModeBtn")) {
 
