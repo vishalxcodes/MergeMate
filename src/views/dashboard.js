@@ -45,8 +45,7 @@ export function renderDashboard() {
           <p>Rotate selected pages</p>
         </div>
 
-      </div>
-      <div class="tool-card" data-tool="imagepdf">
+             <div class="tool-card" data-tool="imagepdf">
 
 <div class="icon">🖼</div>
 
@@ -55,7 +54,11 @@ export function renderDashboard() {
 <p>Convert photos into PDF</p>
 
 </div>
-      <div class="student-mode-card" id="studentModeBtn">
+
+      </div>
+ 
+     <div class="student-section">
+  <div class="student-mode-card" id="studentModeBtn">
 
   <div class="student-icon">
     🎓
@@ -75,7 +78,10 @@ export function renderDashboard() {
     →
   </div>
 
+
 </div>
+
+    </div>
 
     </div>
   `;

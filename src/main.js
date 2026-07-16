@@ -46,10 +46,12 @@ function showToast(message, type = "success") {
 
 }
 window.showToast = showToast;
-
+let currentMode = "professional";
 showDashboard();
 
 function showDashboard() {
+    currentMode = "professional";
+
     document.body.classList.remove("student-mode");
 
     app.innerHTML = renderDashboard();
@@ -65,6 +67,7 @@ function showDashboard() {
     initTheme();
 
 }
+
 function showStudentDashboard() {
 
     app.innerHTML = renderStudentDashboard();
@@ -131,11 +134,14 @@ initImageToPdf();
 
     card.classList.add("click-scale");
 
-    setTimeout(()=>{
+   setTimeout(()=>{
+    window.scrollTo(0, 0);
 
-        showStudentDashboard();
+    currentMode = "student";
 
-    },180);
+    showStudentDashboard();
+
+},180);
 
 }
 
@@ -184,12 +190,20 @@ if (e.target.closest('[data-tool="rotate"]')) {
     initRotateView();
 
 }
+if (e.target.id === "backBtn") {
 
-    if (e.target.id === "backBtn") {
+    if (currentMode === "student") {
+
+        showStudentDashboard();
+
+        window.scrollTo(0, 0);
+
+    } else {
 
         showDashboard();
 
-        
+    }
+
 }
 
 });

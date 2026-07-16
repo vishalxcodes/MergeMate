@@ -40,7 +40,7 @@ export function renderStudentDashboard() {
 
         <div class="tool-grid">
 
-            <div class="tool-card">
+            <div class="tool-card" data-tool="merge">
                 <div class="icon">📄</div>
                 <h3>Merge Assignment</h3>
                 <p>Combine assignment PDFs</p>
@@ -52,7 +52,7 @@ export function renderStudentDashboard() {
                 <p>Reduce PDF size</p>
             </div>
 
-            <div class="tool-card">
+         <div class="tool-card" data-tool="imagepdf">
                 <div class="icon">📷</div>
                 <h3>Homework Scanner</h3>
                 <p>Images to PDF</p>
