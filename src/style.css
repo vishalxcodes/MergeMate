@@ -1213,3 +1213,285 @@ body:not(.dark) .image-drop-zone{
     width:100%;
 
 }
+.pdf-upload-zone{
+
+    margin:25px 0;
+
+    min-height:260px;
+
+    border:2px dashed #c7d2fe;
+
+    border-radius:20px;
+
+    display:flex;
+
+    flex-direction:column;
+
+    justify-content:center;
+
+    align-items:center;
+
+    gap:12px;
+
+    transition:.25s;
+
+    cursor:pointer;
+
+}
+
+.pdf-upload-zone h2{
+
+    margin:0;
+
+}
+
+.pdf-upload-zone p{
+
+    margin:0;
+
+    color:var(--text-secondary);
+
+}
+
+.pdf-upload-zone .upload-icon{
+
+    font-size:64px;
+
+}
+
+.pdf-upload-zone.dragging{
+
+    border-color:#6366f1;
+
+    background:rgba(99,102,241,.12);
+
+    transform:scale(1.02);
+
+}
+#compressFileInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 18px;
+}
+
+.selected-pdf {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+    border-radius: 14px;
+    background: rgba(99, 102, 241, 0.12);
+    border: 1px solid rgba(99, 102, 241, 0.35);
+}
+
+.selected-pdf strong {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.selected-pdf span {
+    color: var(--text-secondary);
+    font-size: 13px;
+}
+
+.remove-compress-file {
+    width: 28px;
+    height: 28px;
+    border: none;
+    border-radius: 50%;
+    background: #ef4444;
+    color: white;
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.remove-compress-file:hover {
+    background: #dc2626;
+}
+#compressBtn{
+    margin-top: 18px;
+}
+.compression-options{
+
+    margin-top:24px;
+
+}
+
+.compression-options h3{
+
+    margin-bottom:14px;
+
+    font-size:17px;
+
+}
+
+.compression-grid{
+
+    display:grid;
+
+    grid-template-columns:repeat(3,1fr);
+
+    gap:12px;
+
+}
+
+.compression-card{
+
+    position:relative;
+
+    display:flex;
+
+    flex-direction:column;
+
+    align-items:flex-start;
+
+    gap:10px;
+
+    padding:18px;
+
+    border:1px solid #e5e7eb;
+
+    border-radius:18px;
+
+    background:#fff;
+
+    cursor:pointer;
+
+    transition:.25s ease;
+
+}
+
+.compression-card input{
+
+    position:absolute;
+
+    opacity:0;
+
+}
+
+.compression-card:hover{
+
+    transform:translateY(-3px);
+
+    box-shadow:0 8px 20px rgba(0,0,0,.08);
+
+}
+
+.compression-icon{
+
+    font-size:28px;
+
+}
+
+.compression-info{
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:5px;
+
+}
+
+.compression-info strong{
+
+    font-size:15px;
+
+}
+
+.compression-info span{
+
+    font-size:12px;
+
+    color:#6b7280;
+
+}
+
+.compression-check{
+
+    position:absolute;
+
+    top:12px;
+
+    right:12px;
+
+    width:22px;
+
+    height:22px;
+
+    border-radius:50%;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    opacity:0;
+
+    transform:scale(.7);
+
+    transition:.2s ease;
+
+}
+
+.compression-card:has(input:checked){
+
+    border-color:#6366f1;
+
+    background:#eef2ff;
+
+    box-shadow:0 8px 22px rgba(99,102,241,.15);
+
+}
+
+.compression-card:has(input:checked) .compression-check{
+
+    opacity:1;
+
+    transform:scale(1);
+
+    background:#6366f1;
+
+    color:white;
+
+}
+body.dark .compression-card{
+
+    background:#1e293b;
+
+    border-color:#334155;
+
+}
+
+body.dark .compression-card strong{
+
+    color:#f8fafc;
+
+}
+
+body.dark .compression-card span{
+
+    color:#cbd5e1;
+
+}
+
+body.dark .compression-options h3{
+
+    color:#f8fafc;
+
+}
+
+body.dark .compression-card:has(input:checked){
+
+    background:#312e81;
+
+    border-color:#818cf8;
+
+}

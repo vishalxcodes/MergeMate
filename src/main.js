@@ -18,6 +18,8 @@ import { renderStudentDashboard } from "./views/studentDashboard";
 import { saveRecentTool } from "./utils/recentTool";
 import { renderImageToPdfView } from "./views/imageToPdfView";
 import { initImageToPdf } from "./controllers/imageToPdfController";
+import { renderCompressView } from "./views/compressView";
+import { initCompressView } from "./controllers/compressController";
 
 const app = document.querySelector("#app");
 
@@ -188,6 +190,12 @@ if (e.target.closest('[data-tool="rotate"]')) {
     app.innerHTML = renderRotateView();
 
     initRotateView();
+
+}
+if (e.target.closest('[data-tool="compress"]')) {
+
+    app.innerHTML = renderCompressView();
+       initCompressView();
 
 }
 if (e.target.id === "backBtn") {

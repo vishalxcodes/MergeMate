@@ -55,6 +55,16 @@ export function renderDashboard() {
 
 </div>
 
+<div class="tool-card" data-tool="compress">
+
+  <div class="icon">🗜️</div>
+
+  <h3>Compress PDF</h3>
+
+  <p>Reduce PDF file size</p>
+
+</div>
+
       </div>
  
      <div class="student-section">
