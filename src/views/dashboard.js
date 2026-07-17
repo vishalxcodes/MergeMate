@@ -65,6 +65,19 @@ export function renderDashboard() {
 
 </div>
 
+<div class="tool-card" data-tool="protect">
+  <div class="icon">🔒</div>
+  <h3>Protect PDF</h3>
+  <p>Add password protection</p>
+</div>
+<div class="tool-card" data-tool="unlock">
+  <div class="icon">🔓</div>
+  <h3>Unlock PDF</h3>
+  <p> Remove password protection</p>
+</div>
+
+
+
       </div>
  
      <div class="student-section">

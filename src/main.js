@@ -20,6 +20,11 @@ import { renderImageToPdfView } from "./views/imageToPdfView";
 import { initImageToPdf } from "./controllers/imageToPdfController";
 import { renderCompressView } from "./views/compressView";
 import { initCompressView } from "./controllers/compressController";
+import { renderProtectView } from "./views/protectView";
+import { initProtectView } from "./controllers/protectController";
+import { renderUnlockView } from "./views/unlockView";
+import { initUnlockView } from "./controllers/unlockController";
+
 
 const app = document.querySelector("#app");
 
@@ -211,6 +216,22 @@ if (e.target.id === "backBtn") {
         showDashboard();
 
     }
+
+}
+
+if (e.target.closest('[data-tool="protect"]')) {
+
+    app.innerHTML = renderProtectView();
+
+    initProtectView();
+
+
+}
+if (e.target.closest('[data-tool="unlock"]')) {
+
+    app.innerHTML = renderUnlockView();
+
+    initUnlockView();
 
 }
 

@@ -1495,3 +1495,289 @@ body.dark .compression-card:has(input:checked){
     border-color:#818cf8;
 
 }
+/* ================================
+   PROTECT PDF
+================================ */
+
+.protect-icon {
+    background: linear-gradient(
+        135deg,
+        #eef2ff,
+        #e0e7ff
+    );
+}
+
+/* Protect Drop Zone */
+
+.protect-drop-zone {
+    border: 2px dashed #c7d2fe;
+    background: linear-gradient(
+        180deg,
+        #fafbff,
+        #f5f7ff
+    );
+    transition: all .25s ease;
+}
+
+.protect-drop-zone:hover {
+    border-color: #6366f1;
+    transform: translateY(-2px);
+}
+
+.protect-drop-zone.dragging {
+    border-color: #4f46e5;
+    background: #eef2ff;
+    transform: scale(1.01);
+}
+
+.protect-drop-zone .drop-icon {
+    font-size: 42px;
+    margin-bottom: 10px;
+}
+
+.file-support {
+    display: inline-block;
+    margin-top: 12px;
+    padding: 5px 10px;
+    border-radius: 20px;
+    background: #eef2ff;
+    color: #4f46e5;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+/* Password Section */
+
+.password-section {
+    margin-top: 24px;
+    padding: 22px;
+    border-radius: 18px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+}
+
+.password-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 15px;
+    margin-bottom: 18px;
+}
+
+.password-header h3 {
+    margin: 0;
+    color: #111827;
+}
+
+.password-header p {
+    margin: 6px 0 0;
+    font-size: 13px;
+    color: #64748b;
+}
+
+.security-badge {
+    padding: 6px 10px;
+    border-radius: 20px;
+    background: #dcfce7;
+    color: #15803d;
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+/* Password Inputs */
+
+.password-input-group {
+    position: relative;
+    margin-bottom: 12px;
+}
+
+.password-input-group input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 13px 45px 13px 14px;
+    border: 1px solid #cbd5e1;
+    border-radius: 10px;
+    font-size: 14px;
+    outline: none;
+    background: white;
+}
+
+.password-input-group input:focus {
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99,102,241,.12);
+}
+.toggle-password {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+
+    transform: translateY(-50%);
+
+    width: 28px;
+    height: 28px;
+
+    padding: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border: none;
+    outline: none;
+
+    background: transparent;
+
+    cursor: pointer;
+
+    font-size: 15px;
+    line-height: 1;
+
+    opacity: .65;
+
+    transition: opacity .2s ease;
+}
+
+.toggle-password:hover {
+    opacity: 1;
+}
+
+.toggle-password:focus,
+.toggle-password:active {
+    outline: none;
+    box-shadow: none;
+    transform: translateY(-50%);
+}
+
+/* Protect Button */
+
+.protect-btn {
+    width: 100%;
+    margin-top: 8px;
+}
+
+/* Security Info */
+
+.security-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 22px;
+    padding: 13px 15px;
+    border-radius: 12px;
+    background: #f1f5f9;
+    color: #475569;
+}
+
+.security-info span {
+    font-size: 20px;
+}
+
+.security-info p {
+    margin: 0;
+    font-size: 12px;
+    line-height: 1.5;
+}
+/* Protect PDF - Dark Theme */
+
+body.dark .protect-drop-zone {
+    background: #111827;
+    border-color: #374151;
+}
+
+body.dark .protect-drop-zone:hover {
+    border-color: #818cf8;
+}
+
+body.dark .protect-drop-zone.dragging {
+    background: #1e1b4b;
+    border-color: #818cf8;
+}
+
+body.dark .file-support {
+    background: #312e81;
+    color: #c7d2fe;
+}
+
+body.dark .password-section {
+    background: #111827;
+    border-color: #374151;
+}
+
+body.dark .password-header h3 {
+    color: #f8fafc;
+}
+
+body.dark .password-header p {
+    color: #94a3b8;
+}
+
+body.dark .password-input-group input {
+    background: #1f2937;
+    border-color: #4b5563;
+    color: white;
+}
+
+body.dark .password-input-group input::placeholder {
+    color: #9ca3af;
+}
+
+body.dark .security-info {
+    background: #1f2937;
+    color: #cbd5e1;
+}
+/* ================================
+   UNLOCK PDF
+================================ */
+
+.unlock-icon {
+    background: linear-gradient(
+        135deg,
+        #ecfdf5,
+        #d1fae5
+    );
+}
+
+.unlock-drop-zone {
+    border: 2px dashed #a7f3d0;
+    background: linear-gradient(
+        180deg,
+        #fafffc,
+        #f0fdf4
+    );
+    transition: all .25s ease;
+}
+
+.unlock-drop-zone:hover {
+    border-color: #10b981;
+    transform: translateY(-2px);
+}
+
+.unlock-drop-zone.dragging {
+    border-color: #059669;
+    background: #ecfdf5;
+    transform: scale(1.01);
+}
+/* Unlock PDF - Dark Theme */
+
+body.dark .unlock-drop-zone {
+    background: #111827;
+    border-color: #374151;
+}
+
+body.dark .unlock-drop-zone:hover {
+    border-color: #34d399;
+}
+
+body.dark .unlock-drop-zone.dragging {
+    background: #052e1b;
+    border-color: #34d399;
+}
+
+body.dark .unlock-icon {
+    background: #064e3b;
+}
+
+body.dark .unlock-drop-zone .drop-icon {
+    color: #a7f3d0;
+}

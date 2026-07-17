@@ -46,11 +46,11 @@ export function renderStudentDashboard() {
                 <p>Combine assignment PDFs</p>
             </div>
 
-            <div class="tool-card">
-                <div class="icon">📚</div>
-                <h3>Compress Notes</h3>
-                <p>Reduce PDF size</p>
-            </div>
+            <div class="tool-card" data-tool="compress">
+    <div class="icon">📚</div>
+    <h3>Compress Notes</h3>
+    <p>Reduce PDF size</p>
+</div>
 
          <div class="tool-card" data-tool="imagepdf">
                 <div class="icon">📷</div>
