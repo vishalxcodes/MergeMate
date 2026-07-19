@@ -3,6 +3,7 @@ registerSW({
   immediate: true,
 });
 import "./style.css";
+import "./styles/converter.css";
 import { renderDashboard } from "./views/dashboard";
 import { renderMergeView } from "./views/mergeView";
 import { initMergeView } from "./controllers/mergeController";
@@ -24,6 +25,12 @@ import { renderProtectView } from "./views/protectView";
 import { initProtectView } from "./controllers/protectController";
 import { renderUnlockView } from "./views/unlockView";
 import { initUnlockView } from "./controllers/unlockController";
+import { renderDocToTxtView } from "./views/docToTxtView";
+import { initDocToTxtView } from "./controllers/docToTxtController";
+import { renderPdfToImageView } from "./views/pdfToImageView";
+import { initPdfToImageView } from "./controllers/pdfToImageController";
+import { renderDocToPdfView } from "./views/docToPdfView";
+import { initDocToPdfView } from "./controllers/docToPdfController";
 
 
 const app = document.querySelector("#app");
@@ -232,6 +239,27 @@ if (e.target.closest('[data-tool="unlock"]')) {
     app.innerHTML = renderUnlockView();
 
     initUnlockView();
+
+}
+if (e.target.closest('[data-tool="doc-to-txt"]')) {
+
+    app.innerHTML = renderDocToTxtView();
+
+    initDocToTxtView();
+
+}
+if (e.target.closest('[data-tool="pdf-to-image"]')) {
+
+    app.innerHTML = renderPdfToImageView();
+
+    initPdfToImageView();
+
+}
+if (e.target.closest('[data-tool="doc-to-pdf"]')) {
+
+    app.innerHTML = renderDocToPdfView();
+
+    initDocToPdfView();
 
 }
 

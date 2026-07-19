@@ -76,6 +76,35 @@ export function renderDashboard() {
   <p> Remove password protection</p>
 </div>
 
+<div
+    class="tool-card"
+    data-tool="doc-to-txt">
+    <div class="icon">📄</div>
+
+    <h3>DOCX to TXT</h3>
+
+    <p>Extract plain text from Word files</p>
+</div>
+<div
+    class="tool-card"
+    data-tool="pdf-to-image"
+>
+    <div class="icon">🖼️</div>
+
+    <h3>PDF to Image</h3>
+
+    <p>Convert PDF pages to JPG or PNG</p>
+</div>
+<div
+    class="tool-card"
+    data-tool="doc-to-pdf"
+>
+    <div class="icon">📄</div>
+
+    <h3>DOCX to PDF</h3>
+
+    <p>Convert Word documents to PDF</p>
+</div>
 
 
       </div>
