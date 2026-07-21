@@ -140,7 +140,7 @@ export function initDocToPdfView() {
 
         const response =
             await fetch(
-                "http://localhost:3000/api/convert/docx-to-pdf",
+                "https://mergemate-emgy.onrender.com/api/convert/docx-to-pdf",
                 {
 
                     method: "POST",
