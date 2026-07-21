@@ -75,9 +75,14 @@ const upload =
         }
 
     });
-    async function convertWithRetry(form, maxRetries = 3) {
+    async function convertWithRetry(inputPath, originalFilename, maxRetries = 3) {
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
+      const form = new FormData();
+      form.append("files", fs.createReadStream(inputPath), {
+        filename: originalFilename,
+      });
+
       const response = await fetch(
         "https://mergemate-gotenberg.onrender.com/forms/libreoffice/convert",
         {
@@ -129,12 +134,8 @@ app.post(
     const inputPath = req.file.path;
 
     try {
-      const form = new FormData();
-      form.append("files", fs.createReadStream(inputPath), {
-        filename: req.file.originalname,
-      });
-
-      const response = await convertWithRetry(form);
+      
+      const response = await convertWithRetry(inputPath, req.file.originalname);
       const pdfBuffer = await response.buffer();
 
       res.set({
