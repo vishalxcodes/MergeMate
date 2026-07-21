@@ -118,132 +118,128 @@ export function initDocToPdfView() {
     );
 
 
-    async function convertDocToPdf() {
+   async function convertDocToPdf() {
 
     if (!selectedFile) return;
 
     convertBtn.disabled = true;
 
-    convertBtn.textContent =
-        "Converting...";
+    const maxAttempts = 2;
 
-    try {
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
 
-        const formData =
-            new FormData();
+        try {
 
-        formData.append(
-            "file",
-            selectedFile
-        );
+            if (attempt === 1) {
+                convertBtn.textContent = "Converting...";
+            } else {
+                convertBtn.textContent = "⏳ Waking up engine, please wait...";
+                showToast(
+                    "MergeMate's conversion engine is waking up. This can take up to a minute on first use.",
+                    "info"
+                );
+            }
 
+            const formData =
+                new FormData();
 
-        const response =
-            await fetch(
-                "https://mergemate-emgy.onrender.com/api/convert/docx-to-pdf",
-                {
-
-                    method: "POST",
-
-                    body: formData
-
-                }
+            formData.append(
+                "file",
+                selectedFile
             );
 
+            const response =
+                await fetch(
+                    "https://mergemate-emgy.onrender.com/api/convert/docx-to-pdf",
+                    {
+                        method: "POST",
+                        body: formData
+                    }
+                );
 
-        if (!response.ok) {
+            if (!response.ok) {
 
-            const error =
-                await response.json();
+                const error =
+                    await response.json();
 
-            throw new Error(
-                error.error ||
-                "Conversion failed"
-            );
+                throw new Error(
+                    error.error ||
+                    "Conversion failed"
+                );
 
-        }
+            }
 
+            const pdfBlob =
+                await response.blob();
 
-        const pdfBlob =
-            await response.blob();
+            const url =
+                URL.createObjectURL(
+                    pdfBlob
+                );
 
+            const a =
+                document.createElement(
+                    "a"
+                );
 
-        const url =
-            URL.createObjectURL(
-                pdfBlob
-            );
+            const fileNameInput =
+                document.getElementById(
+                    "docToPdfFileName"
+                );
 
+            let fileName =
+                fileNameInput.value.trim();
 
-        const a =
-            document.createElement(
-                "a"
-            );
+            if (!fileName) {
 
+                fileName =
+                    selectedFile.name
+                        .replace(
+                            /\.docx$/i,
+                            ""
+                        );
 
-        const fileNameInput =
-            document.getElementById(
-                "docToPdfFileName"
-            );
-
-
-        let fileName =
-            fileNameInput.value.trim();
-
-
-        if (!fileName) {
+            }
 
             fileName =
-                selectedFile.name
-                    .replace(
-                        /\.docx$/i,
-                        ""
-                    );
+                fileName.replace(
+                    /\.pdf$/i,
+                    ""
+                );
 
-        }
+            a.href = url;
 
+            a.download =
+                fileName + ".pdf";
 
-        fileName =
-            fileName.replace(
-                /\.pdf$/i,
-                ""
+            a.click();
+
+            URL.revokeObjectURL(url);
+
+            showToast(
+                "DOCX converted to PDF successfully"
             );
 
+            break;
 
-        a.href = url;
+        } catch (error) {
 
-        a.download =
-            fileName + ".pdf";
+            console.error(error);
 
+            if (attempt === maxAttempts) {
 
-        a.click();
+                showToast(
+                    "Could not convert this DOCX file",
+                    "error"
+                );
 
+            }
 
-        URL.revokeObjectURL(url);
-
-
-        showToast(
-            "DOCX converted to PDF successfully"
-        );
-
-
-    } catch (error) {
-
-        console.error(error);
-
-
-        showToast(
-
-            "Could not convert this DOCX file",
-
-            "error"
-
-        );
+        }
 
     }
 
-
     convertBtn.disabled = false;
-
 
     convertBtn.textContent =
         "Convert to PDF";
