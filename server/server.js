@@ -75,7 +75,7 @@ const upload =
         }
 
     });
-    async function convertWithRetry(inputPath, originalFilename, maxRetries = 3) {
+    async function convertWithRetry(inputPath, originalFilename, maxRetries = 5) {
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
       const form = new FormData();
@@ -101,7 +101,7 @@ const upload =
     }
 
     if (attempt < maxRetries) {
-      await new Promise((resolve) => setTimeout(resolve, 8000));
+      await new Promise((resolve) => setTimeout(resolve, 15000));
     }
   }
 
