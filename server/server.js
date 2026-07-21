@@ -75,6 +75,33 @@ const upload =
         }
 
     });
+    async function convertWithRetry(form, maxRetries = 3) {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      const response = await fetch(
+        "https://mergemate-gotenberg.onrender.com/forms/libreoffice/convert",
+        {
+          method: "POST",
+          body: form,
+        }
+      );
+
+      if (response.ok) {
+        return response;
+      }
+
+      console.log(`Attempt ${attempt} failed with status ${response.status}, retrying...`);
+    } catch (err) {
+      console.log(`Attempt ${attempt} failed with error: ${err.message}, retrying...`);
+    }
+
+    if (attempt < maxRetries) {
+      await new Promise((resolve) => setTimeout(resolve, 8000));
+    }
+  }
+
+  throw new Error("Gotenberg failed after multiple retries (service may be waking up)");
+}
 
 
 app.post(
@@ -107,18 +134,7 @@ app.post(
         filename: req.file.originalname,
       });
 
-      const response = await fetch(
-        "https://mergemate-gotenberg.onrender.com/forms/libreoffice/convert",
-        {
-          method: "POST",
-          body: form,
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`Gotenberg error: ${response.status}`);
-      }
-
+      const response = await convertWithRetry(form);
       const pdfBuffer = await response.buffer();
 
       res.set({
