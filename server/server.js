@@ -3,12 +3,13 @@ import multer from "multer";
 import cors from "cors";
 import fs from "fs";
 import path from "path";
-import { execFile } from "child_process";
+import FormData from "form-data";
+import fetch from "node-fetch";
 import { fileURLToPath } from "url";
 
 const app = express();
 
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 const __filename =
     fileURLToPath(import.meta.url);
@@ -81,146 +82,60 @@ app.post(
 
     upload.single("file"),
 
-    (req, res) => {
+    app.post(
+  "/api/convert/docx-to-pdf",
+  upload.single("file"),
+  async (req, res) => {
 
-        if (!req.file) {
+    if (!req.file) {
+      return res.status(400).json({ error: "No DOCX file uploaded" });
+    }
 
-            return res
-                .status(400)
-                .json({
+    if (isConverting) {
+      fs.unlink(req.file.path, () => {});
+      return res.status(429).json({
+        error: "Another conversion is already running. Please wait.",
+      });
+    }
 
-                    error:
-                        "No DOCX file uploaded"
+    isConverting = true;
+    const inputPath = req.file.path;
 
-                });
+    try {
+      const form = new FormData();
+      form.append("files", fs.createReadStream(inputPath), {
+        filename: req.file.originalname,
+      });
 
+      const response = await fetch(
+        "https://mergemate-gotenberg.onrender.com/forms/libreoffice/convert",
+        {
+          method: "POST",
+          body: form,
         }
-        if (isConverting) {
+      );
 
-    fs.unlink(
-        req.file.path,
-        () => {}
-    );
+      if (!response.ok) {
+        throw new Error(`Gotenberg error: ${response.status}`);
+      }
 
-    return res
-        .status(429)
-        .json({
+      const pdfBuffer = await response.buffer();
 
-            error:
-                "Another conversion is already running. Please wait."
+      res.set({
+        "Content-Type": "application/pdf",
+        "Content-Disposition": "attachment; filename=converted.pdf",
+      });
+      res.send(pdfBuffer);
 
-        });
-
-}
-
-isConverting = true;
-
-
-        const inputPath =
-            req.file.path;
-
-
-        const outputDir =
-            uploadDir;
-
-
-        execFile(
-    "C:\\Program Files\\LibreOffice\\program\\soffice.exe",
-
-            [
-
-                "--headless",
-
-                "--convert-to",
-                "pdf",
-
-                "--outdir",
-                outputDir,
-
-                inputPath
-
-            ],
-            {
-    timeout: 120000
-},
-
-            (error) => {
-
-               if (error) {
-
-    isConverting = false;
-
-    fs.unlink(
-        inputPath,
-        () => {}
-    );
-
-    return res
-        .status(500)
-        .json({
-
-            error:
-                "DOCX conversion failed"
-
-        });
-
-}
-
-
-                const outputPath =
-                    inputPath + ".pdf";
-
-
-                if (
-                    !fs.existsSync(
-                        outputPath
-                    )
-                ) {
-
-                    return res
-                        .status(500)
-                        .json({
-
-                            error:
-                                "PDF was not created"
-
-                        });
-
-                }
-
-
-                res.download(
-
-    outputPath,
-
-    "converted.pdf",
-
-    () => {
-
-        fs.unlink(
-            inputPath,
-            () => {}
-        );
-
-        fs.unlink(
-            outputPath,
-            () => {}
-        );
-
-
-        isConverting = false;
-
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: "DOCX conversion failed" });
+    } finally {
+      fs.unlink(inputPath, () => {});
+      isConverting = false;
     }
-
-);
-
-            }
-
-        );
-
-    }
-
-);
+  }
+));
 
 
 app.listen(
