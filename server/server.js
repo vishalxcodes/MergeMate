@@ -75,8 +75,11 @@ const upload =
         }
 
     });
-    async function convertWithRetry(inputPath, originalFilename, maxRetries = 5) {
+   async function convertWithRetry(inputPath, originalFilename, maxRetries = 3) {
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 90000);
+
     try {
       const form = new FormData();
       form.append("files", fs.createReadStream(inputPath), {
@@ -88,8 +91,11 @@ const upload =
         {
           method: "POST",
           body: form,
+          signal: controller.signal,
         }
       );
+
+      clearTimeout(timeoutId);
 
       if (response.ok) {
         return response;
@@ -97,11 +103,12 @@ const upload =
 
       console.log(`Attempt ${attempt} failed with status ${response.status}, retrying...`);
     } catch (err) {
+      clearTimeout(timeoutId);
       console.log(`Attempt ${attempt} failed with error: ${err.message}, retrying...`);
     }
 
     if (attempt < maxRetries) {
-      await new Promise((resolve) => setTimeout(resolve, 15000));
+      await new Promise((resolve) => setTimeout(resolve, 5000));
     }
   }
 
