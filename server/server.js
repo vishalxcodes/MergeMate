@@ -75,10 +75,41 @@ const upload =
         }
 
     });
-   async function convertWithRetry(inputPath, originalFilename, maxRetries = 3) {
+   async function waitForGotenbergReady(maxWaitMs = 90000) {
+  const startTime = Date.now();
+
+  while (Date.now() - startTime < maxWaitMs) {
+    try {
+      const healthResponse = await fetch(
+        "https://mergemate-gotenberg.onrender.com/health",
+        { method: "GET" }
+      );
+
+      if (healthResponse.ok) {
+        return true;
+      }
+    } catch (err) {
+      // service abhi bhi wake ho rahi hai, ignore aur retry
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 4000));
+  }
+
+  return false;
+}
+
+async function convertWithRetry(inputPath, originalFilename, maxRetries = 2) {
+
+  // Pehle ensure karo Gotenberg ready hai
+  const isReady = await waitForGotenbergReady();
+
+  if (!isReady) {
+    throw new Error("Gotenberg did not become ready in time");
+  }
+
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 90000);
+    const timeoutId = setTimeout(() => controller.abort(), 60000);
 
     try {
       const form = new FormData();
@@ -112,7 +143,7 @@ const upload =
     }
   }
 
-  throw new Error("Gotenberg failed after multiple retries (service may be waking up)");
+  throw new Error("Gotenberg failed after multiple retries");
 }
 
 
