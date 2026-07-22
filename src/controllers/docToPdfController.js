@@ -5,6 +5,8 @@ let selectedFile = null;
 
 export function initDocToPdfView() {
 
+     fetch("https://mergemate-gotenberg.onrender.com/health").catch(() => {});
+
     const dropZone =
         document.getElementById("docToPdfDropZone");
 
@@ -86,6 +88,8 @@ export function initDocToPdfView() {
 
 
     function selectFile(file) {
+
+        fetch("https://mergemate-gotenberg.onrender.com/health").catch(() => {});
 
         selectedFile = file;
 
@@ -222,20 +226,15 @@ export function initDocToPdfView() {
 
             break;
 
-        } catch (error) {
-
-            console.error(error);
-
-            if (attempt === maxAttempts) {
-
-                showToast(
-                    "Could not convert this DOCX file",
-                    "error"
-                );
-
-            }
-
-        }
+        }  catch (error) {
+    console.error(error);
+    if (attempt === maxAttempts) {
+        showToast(
+            "Conversion engine is waking up. Please click 'Convert to PDF' again in a few seconds.",
+            "error"
+        );
+    }
+}
 
     }
 

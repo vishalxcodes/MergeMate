@@ -75,21 +75,25 @@ const upload =
         }
 
     });
-   async function waitForGotenbergReady(maxWaitMs = 90000) {
+   async function waitForGotenbergReady(maxWaitMs = 150000) {
   const startTime = Date.now();
+  let attemptCount = 0;
 
   while (Date.now() - startTime < maxWaitMs) {
+    attemptCount++;
     try {
       const healthResponse = await fetch(
         "https://mergemate-gotenberg.onrender.com/health",
         { method: "GET" }
       );
 
+      console.log(`Health check attempt ${attemptCount}: status ${healthResponse.status}`);
+
       if (healthResponse.ok) {
         return true;
       }
     } catch (err) {
-      // service abhi bhi wake ho rahi hai, ignore aur retry
+      console.log(`Health check attempt ${attemptCount} error: ${err.message}`);
     }
 
     await new Promise((resolve) => setTimeout(resolve, 4000));
