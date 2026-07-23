@@ -33,6 +33,8 @@ import { renderDocToPdfView } from "./views/docToPdfView";
 import { initDocToPdfView } from "./controllers/docToPdfController";
 import { renderExcelToPdfView } from "./views/excelToPdfView";
 import { initExcelToPdfView } from "./controllers/excelToPdfController";
+import { renderPptToPdfView } from "./views/pptToPdfView";
+import { initPptToPdfView } from "./controllers/pptToPdfController";
 
 
 const app = document.querySelector("#app");
@@ -271,6 +273,12 @@ if (e.target.closest('[data-tool="excel-to-pdf"]')) {
     initExcelToPdfView();
 
 }
+if (e.target.closest('[data-tool="ppt-to-pdf"]')) {
 
+    app.innerHTML = renderPptToPdfView();
+
+    initPptToPdfView();
+
+}
 });
 

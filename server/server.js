@@ -113,6 +113,43 @@ const upload =
         }
 
     });
+    const uploadPpt =
+    multer({
+
+        dest: uploadDir,
+
+        limits: {
+
+            fileSize:
+                25 * 1024 * 1024
+
+        },
+
+        fileFilter: (req, file, cb) => {
+
+            const isPpt =
+                file.originalname
+                    .toLowerCase()
+                    .endsWith(".pptx") ||
+                file.originalname
+                    .toLowerCase()
+                    .endsWith(".ppt");
+
+            if (!isPpt) {
+
+                return cb(
+                    new Error(
+                        "Only PowerPoint files are allowed"
+                    )
+                );
+
+            }
+
+            cb(null, true);
+
+        }
+
+    });
 
    async function waitForGotenbergReady(maxWaitMs = 150000) {
   const startTime = Date.now();
@@ -283,6 +320,44 @@ app.post(
     } catch (error) {
       console.error(error);
       res.status(500).json({ error: "Excel conversion failed" });
+    } finally {
+      fs.unlink(inputPath, () => {});
+      isConverting = false;
+    }
+  }
+);
+app.post(
+  "/api/convert/ppt-to-pdf",
+  uploadPpt.single("file"),
+  async (req, res) => {
+
+    if (!req.file) {
+      return res.status(400).json({ error: "No PowerPoint file uploaded" });
+    }
+
+    if (isConverting) {
+      fs.unlink(req.file.path, () => {});
+      return res.status(429).json({
+        error: "Another conversion is already running. Please wait.",
+      });
+    }
+
+    isConverting = true;
+    const inputPath = req.file.path;
+
+    try {
+      const response = await convertWithRetry(inputPath, req.file.originalname);
+      const pdfBuffer = await response.buffer();
+
+      res.set({
+        "Content-Type": "application/pdf",
+        "Content-Disposition": "attachment; filename=converted.pdf",
+      });
+      res.send(pdfBuffer);
+
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: "PPT conversion failed" });
     } finally {
       fs.unlink(inputPath, () => {});
       isConverting = false;

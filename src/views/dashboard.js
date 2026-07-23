@@ -115,6 +115,16 @@ export function renderDashboard() {
 
     <p>Convert Excel spreadsheets to PDF</p>
 </div>
+<div
+    class="tool-card"
+    data-tool="ppt-to-pdf"
+>
+    <div class="icon">📽️</div>
+
+    <h3>PPT to PDF</h3>
+
+    <p>Convert PowerPoint presentations to PDF</p>
+</div>
 
 
       </div>
