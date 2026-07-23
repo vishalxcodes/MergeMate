@@ -31,6 +31,8 @@ import { renderPdfToImageView } from "./views/pdfToImageView";
 import { initPdfToImageView } from "./controllers/pdfToImageController";
 import { renderDocToPdfView } from "./views/docToPdfView";
 import { initDocToPdfView } from "./controllers/docToPdfController";
+import { renderExcelToPdfView } from "./views/excelToPdfView";
+import { initExcelToPdfView } from "./controllers/excelToPdfController";
 
 
 const app = document.querySelector("#app");
@@ -260,6 +262,13 @@ if (e.target.closest('[data-tool="doc-to-pdf"]')) {
     app.innerHTML = renderDocToPdfView();
 
     initDocToPdfView();
+
+}
+if (e.target.closest('[data-tool="excel-to-pdf"]')) {
+
+    app.innerHTML = renderExcelToPdfView();
+
+    initExcelToPdfView();
 
 }
 

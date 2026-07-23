@@ -105,6 +105,16 @@ export function renderDashboard() {
 
     <p>Convert Word documents to PDF</p>
 </div>
+<div
+    class="tool-card"
+    data-tool="excel-to-pdf"
+>
+    <div class="icon">📊</div>
+
+    <h3>Excel to PDF</h3>
+
+    <p>Convert Excel spreadsheets to PDF</p>
+</div>
 
 
       </div>

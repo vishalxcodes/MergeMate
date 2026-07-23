@@ -75,6 +75,45 @@ const upload =
         }
 
     });
+
+    const uploadExcel =
+    multer({
+
+        dest: uploadDir,
+
+        limits: {
+
+            fileSize:
+                25 * 1024 * 1024
+
+        },
+
+        fileFilter: (req, file, cb) => {
+
+            const isExcel =
+                file.originalname
+                    .toLowerCase()
+                    .endsWith(".xlsx") ||
+                file.originalname
+                    .toLowerCase()
+                    .endsWith(".xls");
+
+            if (!isExcel) {
+
+                return cb(
+                    new Error(
+                        "Only Excel files are allowed"
+                    )
+                );
+
+            }
+
+            cb(null, true);
+
+        }
+
+    });
+
    async function waitForGotenbergReady(maxWaitMs = 150000) {
   const startTime = Date.now();
   let attemptCount = 0;
@@ -211,4 +250,42 @@ app.listen(
 
     }
 
+);
+app.post(
+  "/api/convert/excel-to-pdf",
+  uploadExcel.single("file"),
+  async (req, res) => {
+
+    if (!req.file) {
+      return res.status(400).json({ error: "No Excel file uploaded" });
+    }
+
+    if (isConverting) {
+      fs.unlink(req.file.path, () => {});
+      return res.status(429).json({
+        error: "Another conversion is already running. Please wait.",
+      });
+    }
+
+    isConverting = true;
+    const inputPath = req.file.path;
+
+    try {
+      const response = await convertWithRetry(inputPath, req.file.originalname);
+      const pdfBuffer = await response.buffer();
+
+      res.set({
+        "Content-Type": "application/pdf",
+        "Content-Disposition": "attachment; filename=converted.pdf",
+      });
+      res.send(pdfBuffer);
+
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: "Excel conversion failed" });
+    } finally {
+      fs.unlink(inputPath, () => {});
+      isConverting = false;
+    }
+  }
 );
