@@ -15,6 +15,12 @@ export function renderDashboard() {
 
       <div class="tool-grid">
 
+        <div class="tool-card" data-tool="imagepdf">
+          <div class="icon">🖼</div>
+          <h3>Images → PDF</h3>
+          <p>Convert photos into PDF</p>
+        </div>
+
         <div class="tool-card" data-tool="merge">
           <div class="icon">📄</div>
           <h3>Merge PDF</h3>
@@ -45,87 +51,79 @@ export function renderDashboard() {
           <p>Rotate selected pages</p>
         </div>
 
-             <div class="tool-card" data-tool="imagepdf">
+        <div class="tool-card" data-tool="compress">
+          <div class="icon">🗜️</div>
+          <h3>Compress PDF</h3>
+          <p>Reduce PDF file size</p>
+        </div>
 
-<div class="icon">🖼</div>
+        <div class="tool-card" data-tool="protect">
+          <div class="icon">🔒</div>
+          <h3>Lock PDF</h3>
+          <p>Add password protection</p>
+        </div>
 
-<h3>Images → PDF</h3>
+        <div class="tool-card" data-tool="unlock">
+          <div class="icon">🔓</div>
+          <h3>Unlock PDF</h3>
+          <p>Remove password protection</p>
+        </div>
 
-<p>Convert photos into PDF</p>
+        <div class="tool-card" data-tool="doc-to-txt">
+          <div class="icon">📄</div>
+          <h3>DOCX to TXT</h3>
+          <p>Extract plain text from Word files</p>
+        </div>
 
-</div>
+        <div class="tool-card" data-tool="pdf-to-image">
+          <div class="icon">🖼️</div>
+          <h3>PDF to Image</h3>
+          <p>Convert PDF pages to JPG or PNG</p>
+        </div>
 
-<div class="tool-card" data-tool="compress">
+        <div class="tool-card" data-tool="image-compress">
+          <div class="icon">🖼️</div>
+          <h3>Compress Image</h3>
+          <p>Reduce image file size</p>
+        </div>
 
-  <div class="icon">🗜️</div>
+        <div class="tool-card" data-tool="doc-to-pdf">
+          <div class="icon">📄</div>
+          <h3>DOCX to PDF</h3>
+          <p>Convert Word documents to PDF</p>
+        </div>
 
-  <h3>Compress PDF</h3>
+        <div class="tool-card" data-tool="excel-to-pdf">
+          <div class="icon">📊</div>
+          <h3>XLSX to PDF</h3>
+          <p>Convert Excel spreadsheets to PDF</p>
+        </div>
 
-  <p>Reduce PDF file size</p>
+        <div class="tool-card" data-tool="ppt-to-pdf">
+          <div class="icon">📽️</div>
+          <h3>PPT to PDF</h3>
+          <p>Convert PowerPoint presentations to PDF</p>
+        </div>
 
-</div>
+        <div class="tool-card" data-tool="pdf-to-doc">
+          <div class="icon">📄</div>
+          <h3>PDF to DOCX</h3>
+          <p>Convert PDF into an editable Word file</p>
+        </div>
 
-<div class="tool-card" data-tool="protect">
-  <div class="icon">🔒</div>
-  <h3>Protect PDF</h3>
-  <p>Add password protection</p>
-</div>
-<div class="tool-card" data-tool="unlock">
-  <div class="icon">🔓</div>
-  <h3>Unlock PDF</h3>
-  <p> Remove password protection</p>
-</div>
+        <div class="tool-card" data-tool="pdf-to-xls">
+          <div class="icon">📊</div>
+          <h3>PDF to XLS</h3>
+          <p>Convert PDF tables into Excel</p>
+        </div>
 
-<div
-    class="tool-card"
-    data-tool="doc-to-txt">
-    <div class="icon">📄</div>
+        <div class="tool-card" data-tool="pdf-to-ppt">
+          <div class="icon">📽️</div>
+          <h3>PDF to PPT</h3>
+          <p>Convert PDF into a PowerPoint file</p>
+        </div>
 
-    <h3>DOCX to TXT</h3>
-
-    <p>Extract plain text from Word files</p>
-</div>
-<div
-    class="tool-card"
-    data-tool="pdf-to-image"
->
-    <div class="icon">🖼️</div>
-
-    <h3>PDF to Image</h3>
-
-    <p>Convert PDF pages to JPG or PNG</p>
-</div>
-<div
-    class="tool-card"
-    data-tool="doc-to-pdf"
->
-    <div class="icon">📄</div>
-
-    <h3>DOCX to PDF</h3>
-
-    <p>Convert Word documents to PDF</p>
-</div>
-<div
-    class="tool-card"
-    data-tool="excel-to-pdf"
->
-    <div class="icon">📊</div>
-
-    <h3>Excel to PDF</h3>
-
-    <p>Convert Excel spreadsheets to PDF</p>
-</div>
-<div
-    class="tool-card"
-    data-tool="ppt-to-pdf"
->
-    <div class="icon">📽️</div>
-
-    <h3>PPT to PDF</h3>
-
-    <p>Convert PowerPoint presentations to PDF</p>
-</div>
-
+        
 
       </div>
  

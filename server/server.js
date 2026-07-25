@@ -150,6 +150,40 @@ const upload =
         }
 
     });
+    const uploadPdf =
+    multer({
+
+        dest: uploadDir,
+
+        limits: {
+
+            fileSize:
+                25 * 1024 * 1024
+
+        },
+
+        fileFilter: (req, file, cb) => {
+
+            const isPdf =
+                file.originalname
+                    .toLowerCase()
+                    .endsWith(".pdf");
+
+            if (!isPdf) {
+
+                return cb(
+                    new Error(
+                        "Only PDF files are allowed"
+                    )
+                );
+
+            }
+
+            cb(null, true);
+
+        }
+
+    });
 
    async function waitForGotenbergReady(maxWaitMs = 150000) {
   const startTime = Date.now();
@@ -358,6 +392,60 @@ app.post(
     } catch (error) {
       console.error(error);
       res.status(500).json({ error: "PPT conversion failed" });
+    } finally {
+      fs.unlink(inputPath, () => {});
+      isConverting = false;
+    }
+  }
+);
+app.post(
+  "/api/convert/pdf-to-docx",
+  uploadPdf.single("file"),
+  async (req, res) => {
+
+    if (!req.file) {
+      return res.status(400).json({ error: "No PDF file uploaded" });
+    }
+
+    if (isConverting) {
+      fs.unlink(req.file.path, () => {});
+      return res.status(429).json({
+        error: "Another conversion is already running. Please wait.",
+      });
+    }
+
+    isConverting = true;
+    const inputPath = req.file.path;
+
+    try {
+      const form = new FormData();
+      form.append("file", fs.createReadStream(inputPath), {
+        filename: req.file.originalname,
+      });
+
+      const response = await fetch(
+        "http://localhost:5000/convert",
+        {
+          method: "POST",
+          body: form,
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`PDF to DOCX conversion failed: ${response.status}`);
+      }
+
+      const docxBuffer = await response.buffer();
+
+      res.set({
+        "Content-Type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "Content-Disposition": "attachment; filename=converted.docx",
+      });
+      res.send(docxBuffer);
+
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: "PDF to DOCX conversion failed" });
     } finally {
       fs.unlink(inputPath, () => {});
       isConverting = false;
