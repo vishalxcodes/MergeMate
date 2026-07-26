@@ -1,3 +1,5 @@
 flask
 pdf2docx
 gunicorn
+pdfplumber
+openpyxl

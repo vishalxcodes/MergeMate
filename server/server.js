@@ -452,3 +452,57 @@ app.post(
     }
   }
 );
+app.post(
+  "/api/convert/pdf-to-excel",
+  uploadPdf.single("file"),
+  async (req, res) => {
+
+    if (!req.file) {
+      return res.status(400).json({ error: "No PDF file uploaded" });
+    }
+
+    if (isConverting) {
+      fs.unlink(req.file.path, () => {});
+      return res.status(429).json({
+        error: "Another conversion is already running. Please wait.",
+      });
+    }
+
+    isConverting = true;
+    const inputPath = req.file.path;
+
+    try {
+      const form = new FormData();
+      form.append("file", fs.createReadStream(inputPath), {
+        filename: req.file.originalname,
+      });
+
+      const response = await fetch(
+        "https://mergemate-pdf-to-docx.onrender.com/convert-to-excel",
+        {
+          method: "POST",
+          body: form,
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`PDF to Excel conversion failed: ${response.status}`);
+      }
+
+      const excelBuffer = await response.buffer();
+
+      res.set({
+        "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "Content-Disposition": "attachment; filename=converted.xlsx",
+      });
+      res.send(excelBuffer);
+
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: "PDF to Excel conversion failed" });
+    } finally {
+      fs.unlink(inputPath, () => {});
+      isConverting = false;
+    }
+  }
+);

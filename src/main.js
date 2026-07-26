@@ -37,6 +37,8 @@ import { renderPptToPdfView } from "./views/pptToPdfView";
 import { initPptToPdfView } from "./controllers/pptToPdfController";
 import { renderPdfToDocView } from "./views/pdfToDocView";
 import { initPdfToDocView } from "./controllers/pdfToDocController";
+import { renderPdfToXlsView } from "./views/pdfToXlsView";
+import { initPdfToXlsView } from "./controllers/pdfToXlsController";
 
 
 const app = document.querySelector("#app");
@@ -287,6 +289,13 @@ if (e.target.closest('[data-tool="pdf-to-doc"]')) {
     app.innerHTML = renderPdfToDocView();
 
     initPdfToDocView();
+
+}
+if (e.target.closest('[data-tool="pdf-to-xls"]')) {
+
+    app.innerHTML = renderPdfToXlsView();
+
+    initPdfToXlsView();
 
 }
 });
