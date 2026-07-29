@@ -8,10 +8,12 @@ import openpyxl
 from openpyxl.styles import Font, Border, Side, PatternFill
 from openpyxl.utils import get_column_letter
 import fitz
+import gc
 from pptx import Presentation
 from pptx.util import Inches, Emu, Pt
 from pptx.dml.color import RGBColor
 from pptx.enum.dml import MSO_LINE_DASH_STYLE
+
 
 app = Flask(__name__)
 
@@ -358,8 +360,10 @@ def convert_to_ppt_editable():
                     line_shape.line.width = Pt(max(line_width, 0.5))
 
                     dashes = drawing.get("dashes")
-                    if dashes and dashes != "[] 0":
-                        line_shape.line.dash_style = MSO_LINE_DASH_STYLE.DASH
+                if dashes and dashes != "[] 0":
+                    line_shape.line.dash_style = MSO_LINE_DASH_STYLE.DASH
+
+        gc.collect()
 
     pdf_doc.close()
     prs.save(output_path)
