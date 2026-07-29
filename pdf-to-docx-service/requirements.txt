@@ -3,3 +3,5 @@ pdf2docx
 gunicorn
 pdfplumber
 openpyxl
+pymupdf
+python-pptx

@@ -117,11 +117,11 @@ export function renderDashboard() {
           <p>Convert PDF tables into Excel</p>
         </div>
 
-        <div class="tool-card" data-tool="pdf-to-ppt">
-          <div class="icon">📽️</div>
-          <h3>PDF to PPT</h3>
-          <p>Convert PDF into a PowerPoint file</p>
-        </div>
+       <div class="tool-card" data-tool="pdf-to-ppt-editable">
+  <div class="icon">📽️</div>
+  <h3>PDF to PPT</h3>
+  <p>Convert PDF into an editable PowerPoint file</p>
+</div>
 
         
 

@@ -506,3 +506,111 @@ app.post(
     }
   }
 );
+app.post(
+  "/api/convert/pdf-to-ppt",
+  uploadPdf.single("file"),
+  async (req, res) => {
+
+    if (!req.file) {
+      return res.status(400).json({ error: "No PDF file uploaded" });
+    }
+
+    if (isConverting) {
+      fs.unlink(req.file.path, () => {});
+      return res.status(429).json({
+        error: "Another conversion is already running. Please wait.",
+      });
+    }
+
+    isConverting = true;
+    const inputPath = req.file.path;
+
+    try {
+      const form = new FormData();
+      form.append("file", fs.createReadStream(inputPath), {
+        filename: req.file.originalname,
+      });
+
+      const response = await fetch(
+        "https://mergemate-pdf-to-docx.onrender.com/convert-to-ppt",
+        {
+          method: "POST",
+          body: form,
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`PDF to PPT conversion failed: ${response.status}`);
+      }
+
+      const pptBuffer = await response.buffer();
+
+      res.set({
+        "Content-Type": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+        "Content-Disposition": "attachment; filename=converted.pptx",
+      });
+      res.send(pptBuffer);
+
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: "PDF to PPT conversion failed" });
+    } finally {
+      fs.unlink(inputPath, () => {});
+      isConverting = false;
+    }
+  }
+);
+app.post(
+  "/api/convert/pdf-to-ppt-editable",
+  uploadPdf.single("file"),
+  async (req, res) => {
+
+    if (!req.file) {
+      return res.status(400).json({ error: "No PDF file uploaded" });
+    }
+
+    if (isConverting) {
+      fs.unlink(req.file.path, () => {});
+      return res.status(429).json({
+        error: "Another conversion is already running. Please wait.",
+      });
+    }
+
+    isConverting = true;
+    const inputPath = req.file.path;
+
+    try {
+      const form = new FormData();
+      form.append("file", fs.createReadStream(inputPath), {
+        filename: req.file.originalname,
+      });
+
+      const response = await fetch(
+  "https://mergemate-pdf-to-docx.onrender.com/convert-to-ppt-editable",
+        {
+          method: "POST",
+          body: form,
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`PDF to editable PPT conversion failed: ${response.status}`);
+      }
+
+      const pptBuffer = await response.buffer();
+
+      res.set({
+        "Content-Type": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+        "Content-Disposition": "attachment; filename=converted.pptx",
+      });
+      res.send(pptBuffer);
+
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: "PDF to editable PPT conversion failed" });
+    } finally {
+      fs.unlink(inputPath, () => {});
+      isConverting = false;
+    }
+  }
+);
