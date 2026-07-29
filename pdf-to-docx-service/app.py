@@ -13,6 +13,8 @@ from pptx import Presentation
 from pptx.util import Inches, Emu, Pt
 from pptx.dml.color import RGBColor
 from pptx.enum.dml import MSO_LINE_DASH_STYLE
+from PIL import Image
+import io
 
 
 app = Flask(__name__)
@@ -195,6 +197,12 @@ def convert_to_ppt_editable():
     file.save(input_path)
 
     pdf_doc = fitz.open(input_path)
+
+    if len(pdf_doc) > 15:
+        pdf_doc.close()
+        os.remove(input_path)
+        return {"error": "PDF has too many pages for editable conversion. Please try a PDF with 15 or fewer pages."}, 400
+
     prs = Presentation()
     prs.slide_width = Inches(13.333)
     prs.slide_height = Inches(7.5)
@@ -315,8 +323,16 @@ def convert_to_ppt_editable():
 
             for rect in img_rects:
                 img_path = os.path.join(temp_dir, f"{uuid.uuid4()}.{img_ext}")
-                with open(img_path, "wb") as f:
-                    f.write(img_bytes)
+
+                try:
+                    pil_img = Image.open(io.BytesIO(img_bytes))
+                    max_dimension = 1200
+                    if pil_img.width > max_dimension or pil_img.height > max_dimension:
+                        pil_img.thumbnail((max_dimension, max_dimension))
+                    pil_img.save(img_path)
+                except Exception:
+                    with open(img_path, "wb") as f:
+                        f.write(img_bytes)
 
                 left = Emu(int(rect.x0 * scale_x))
                 top = Emu(int(rect.y0 * scale_y))
@@ -360,8 +376,8 @@ def convert_to_ppt_editable():
                     line_shape.line.width = Pt(max(line_width, 0.5))
 
                     dashes = drawing.get("dashes")
-                if dashes and dashes != "[] 0":
-                    line_shape.line.dash_style = MSO_LINE_DASH_STYLE.DASH
+                    if dashes and dashes != "[] 0":
+                        line_shape.line.dash_style = MSO_LINE_DASH_STYLE.DASH
 
         gc.collect()
 
@@ -370,6 +386,7 @@ def convert_to_ppt_editable():
     os.remove(input_path)
 
     return send_file(output_path, as_attachment=True, download_name="converted.pptx")
+
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
