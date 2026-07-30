@@ -197,12 +197,6 @@ def convert_to_ppt_editable():
     file.save(input_path)
 
     pdf_doc = fitz.open(input_path)
-
-    if len(pdf_doc) > 15:
-        pdf_doc.close()
-        os.remove(input_path)
-        return {"error": "PDF has too many pages for editable conversion. Please try a PDF with 15 or fewer pages."}, 400
-
     prs = Presentation()
     prs.slide_width = Inches(13.333)
     prs.slide_height = Inches(7.5)
@@ -214,6 +208,70 @@ def convert_to_ppt_editable():
         scale_y = prs.slide_height / page_rect.height
 
         slide = prs.slides.add_slide(blank_layout)
+
+        image_list = page.get_images(full=True)
+        for img in image_list:
+            xref = img[0]
+            try:
+                base_image = pdf_doc.extract_image(xref)
+                img_bytes = base_image["image"]
+                img_ext = base_image["ext"]
+            except Exception:
+                continue
+
+            img_rects = page.get_image_rects(xref)
+            if not img_rects:
+                continue
+
+            for rect in img_rects:
+                img_path = os.path.join(temp_dir, f"{uuid.uuid4()}.{img_ext}")
+                with open(img_path, "wb") as f:
+                    f.write(img_bytes)
+
+                left = Emu(int(rect.x0 * scale_x))
+                top = Emu(int(rect.y0 * scale_y))
+                width = Emu(int((rect.x1 - rect.x0) * scale_x))
+                height = Emu(int((rect.y1 - rect.y0) * scale_y))
+
+                slide.shapes.add_picture(img_path, left, top, width=width, height=height)
+                os.remove(img_path)
+
+        drawings = page.get_drawings()
+        for drawing in drawings:
+            for item in drawing["items"]:
+                if item[0] == "l":
+                    p1, p2 = item[1], item[2]
+                    x0, y0 = p1.x, p1.y
+                    x1, y1 = p2.x, p2.y
+
+                    line_len_x = abs(x1 - x0)
+                    line_len_y = abs(y1 - y0)
+
+                    if line_len_x > page_rect.width * 0.95 and line_len_y < 2:
+                        continue
+                    if line_len_y > page_rect.height * 0.95 and line_len_x < 2:
+                        continue
+
+                    left = Emu(int(min(x0, x1) * scale_x))
+                    top = Emu(int(min(y0, y1) * scale_y))
+                    width = Emu(max(int(abs(x1 - x0) * scale_x), 1))
+                    height = Emu(max(int(abs(y1 - y0) * scale_y), 1))
+
+                    line_shape = slide.shapes.add_connector(1, left, top, left + width, top + height)
+
+                    color = drawing.get("color")
+                    if color:
+                        r, g, b = [int(c * 255) for c in color]
+                        line_shape.line.color.rgb = RGBColor(r, g, b)
+                    else:
+                        line_shape.line.color.rgb = RGBColor(0, 0, 0)
+
+                    line_width = drawing.get("width") or 1
+                    line_shape.line.width = Pt(max(line_width, 0.5))
+
+                    dashes = drawing.get("dashes")
+                    if dashes and dashes != "[] 0":
+                        line_shape.line.dash_style = MSO_LINE_DASH_STYLE.DASH
 
         text_blocks = page.get_text("dict")["blocks"]
         text_blocks = [b for b in text_blocks if b["type"] == 0]
@@ -306,80 +364,6 @@ def convert_to_ppt_editable():
                     g = (color_int >> 8) & 255
                     b = color_int & 255
                     run.font.color.rgb = RGBColor(r, g, b)
-
-        image_list = page.get_images(full=True)
-        for img in image_list:
-            xref = img[0]
-            try:
-                base_image = pdf_doc.extract_image(xref)
-                img_bytes = base_image["image"]
-                img_ext = base_image["ext"]
-            except Exception:
-                continue
-
-            img_rects = page.get_image_rects(xref)
-            if not img_rects:
-                continue
-
-            for rect in img_rects:
-                img_path = os.path.join(temp_dir, f"{uuid.uuid4()}.{img_ext}")
-
-                try:
-                    pil_img = Image.open(io.BytesIO(img_bytes))
-                    max_dimension = 1200
-                    if pil_img.width > max_dimension or pil_img.height > max_dimension:
-                        pil_img.thumbnail((max_dimension, max_dimension))
-                    pil_img.save(img_path)
-                except Exception:
-                    with open(img_path, "wb") as f:
-                        f.write(img_bytes)
-
-                left = Emu(int(rect.x0 * scale_x))
-                top = Emu(int(rect.y0 * scale_y))
-                width = Emu(int((rect.x1 - rect.x0) * scale_x))
-                height = Emu(int((rect.y1 - rect.y0) * scale_y))
-
-                slide.shapes.add_picture(img_path, left, top, width=width, height=height)
-                os.remove(img_path)
-
-        drawings = page.get_drawings()
-        for drawing in drawings:
-            for item in drawing["items"]:
-                if item[0] == "l":
-                    p1, p2 = item[1], item[2]
-                    x0, y0 = p1.x, p1.y
-                    x1, y1 = p2.x, p2.y
-
-                    line_len_x = abs(x1 - x0)
-                    line_len_y = abs(y1 - y0)
-
-                    if line_len_x > page_rect.width * 0.95 and line_len_y < 2:
-                        continue
-                    if line_len_y > page_rect.height * 0.95 and line_len_x < 2:
-                        continue
-
-                    left = Emu(int(min(x0, x1) * scale_x))
-                    top = Emu(int(min(y0, y1) * scale_y))
-                    width = Emu(max(int(abs(x1 - x0) * scale_x), 1))
-                    height = Emu(max(int(abs(y1 - y0) * scale_y), 1))
-
-                    line_shape = slide.shapes.add_connector(1, left, top, left + width, top + height)
-
-                    color = drawing.get("color")
-                    if color:
-                        r, g, b = [int(c * 255) for c in color]
-                        line_shape.line.color.rgb = RGBColor(r, g, b)
-                    else:
-                        line_shape.line.color.rgb = RGBColor(0, 0, 0)
-
-                    line_width = drawing.get("width") or 1
-                    line_shape.line.width = Pt(max(line_width, 0.5))
-
-                    dashes = drawing.get("dashes")
-                    if dashes and dashes != "[] 0":
-                        line_shape.line.dash_style = MSO_LINE_DASH_STYLE.DASH
-
-        gc.collect()
 
     pdf_doc.close()
     prs.save(output_path)
