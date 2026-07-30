@@ -259,7 +259,7 @@ async function convertWithRetry(inputPath, originalFilename, maxRetries = 2) {
 
   throw new Error("Gotenberg failed after multiple retries");
 }
-async function waitForPdfServiceReady(maxWaitMs = 150000) {
+async function waitForPdfServiceReady(maxWaitMs = 300000) {
   const startTime = Date.now();
   let attemptCount = 0;
 
