@@ -259,6 +259,79 @@ async function convertWithRetry(inputPath, originalFilename, maxRetries = 2) {
 
   throw new Error("Gotenberg failed after multiple retries");
 }
+async function waitForPdfServiceReady(maxWaitMs = 90000) {
+  const startTime = Date.now();
+  let attemptCount = 0;
+
+  while (Date.now() - startTime < maxWaitMs) {
+    attemptCount++;
+    try {
+      const healthResponse = await fetch(
+        "https://mergemate-pdf-to-docx.onrender.com/health",
+        { method: "GET" }
+      );
+
+      console.log(`PDF service health check attempt ${attemptCount}: status ${healthResponse.status}`);
+
+      if (healthResponse.ok) {
+        return true;
+      }
+    } catch (err) {
+      console.log(`PDF service health check attempt ${attemptCount} error: ${err.message}`);
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 4000));
+  }
+
+  return false;
+}
+
+async function convertPdfServiceWithRetry(inputPath, originalFilename, endpoint, maxRetries = 2) {
+
+  const isReady = await waitForPdfServiceReady();
+
+  if (!isReady) {
+    throw new Error("PDF conversion service did not become ready in time");
+  }
+
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 60000);
+
+    try {
+      const form = new FormData();
+      form.append("file", fs.createReadStream(inputPath), {
+        filename: originalFilename,
+      });
+
+      const response = await fetch(
+        `https://mergemate-pdf-to-docx.onrender.com/${endpoint}`,
+        {
+          method: "POST",
+          body: form,
+          signal: controller.signal,
+        }
+      );
+
+      clearTimeout(timeoutId);
+
+      if (response.ok) {
+        return response;
+      }
+
+      console.log(`Attempt ${attempt} failed with status ${response.status}, retrying...`);
+    } catch (err) {
+      clearTimeout(timeoutId);
+      console.log(`Attempt ${attempt} failed with error: ${err.message}, retrying...`);
+    }
+
+    if (attempt < maxRetries) {
+      await new Promise((resolve) => setTimeout(resolve, 5000));
+    }
+  }
+
+  throw new Error(`PDF service (${endpoint}) failed after multiple retries`);
+}
 
 
 app.post(
@@ -580,22 +653,11 @@ app.post(
     const inputPath = req.file.path;
 
     try {
-      const form = new FormData();
-      form.append("file", fs.createReadStream(inputPath), {
-        filename: req.file.originalname,
-      });
-
-      const response = await fetch(
-  "https://mergemate-pdf-to-docx.onrender.com/convert-to-ppt-editable",
-        {
-          method: "POST",
-          body: form,
-        }
+      const response = await convertPdfServiceWithRetry(
+        inputPath,
+        req.file.originalname,
+        "convert-to-ppt-editable"
       );
-
-      if (!response.ok) {
-        throw new Error(`PDF to editable PPT conversion failed: ${response.status}`);
-      }
 
       const pptBuffer = await response.buffer();
 
