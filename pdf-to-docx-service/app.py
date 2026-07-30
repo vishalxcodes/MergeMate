@@ -300,7 +300,9 @@ def convert_to_ppt_editable():
                     vertical_gap = y0 - py1
                     horizontal_overlap = min(x1, px1) - max(x0, px0)
 
-                    if vertical_gap < 6 and horizontal_overlap > -20:
+                    x_start_diff = abs(x0 - px0)
+
+                    if vertical_gap < 6 and horizontal_overlap > -20 and x_start_diff < 15:
                         prev["lines"].extend(block["lines"])
                         prev["bbox"] = (min(px0, x0), py0, max(px1, x1), max(py1, y1))
                         continue
