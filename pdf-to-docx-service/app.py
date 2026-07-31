@@ -187,7 +187,7 @@ def convert_to_excel():
 
     return send_file(output_path, as_attachment=True, download_name="converted.xlsx")
 
-def detect_table(drawings):
+def detect_tables(drawings):
     h_lines = []
     v_lines = []
 
@@ -205,7 +205,7 @@ def detect_table(drawings):
                 v_lines.append((round((x0 + x1) / 2, 1), min(y0, y1), max(y0, y1)))
 
     if len(h_lines) < 3 or len(v_lines) < 3:
-        return None
+        return []
 
     def cluster(values, tol=2):
         values = sorted(values)
@@ -217,29 +217,47 @@ def detect_table(drawings):
                 clusters.append([v])
         return [sum(c) / len(c) for c in clusters]
 
-    h_ys = cluster([h[0] for h in h_lines])
-    v_xs = cluster([v[0] for v in v_lines])
+    v_sorted = sorted(v_lines, key=lambda v: v[1])
+    groups = []
+    for v in v_sorted:
+        placed = False
+        for g in groups:
+            gy0, gy1 = g["y_range"]
+            if not (v[2] < gy0 - 10 or v[1] > gy1 + 10):
+                g["v_lines"].append(v)
+                g["y_range"] = (min(gy0, v[1]), max(gy1, v[2]))
+                placed = True
+                break
+        if not placed:
+            groups.append({"v_lines": [v], "y_range": (v[1], v[2])})
 
-    if len(h_ys) < 2 or len(v_xs) < 2:
-        return None
+    tables = []
+    for g in groups:
+        col_xs = cluster([v[0] for v in g["v_lines"]])
+        if len(col_xs) < 2:
+            continue
 
-    table_x0 = min(v_xs)
-    table_x1 = max(v_xs)
-    table_y0 = min(h_ys)
-    table_y1 = max(h_ys)
+        gy0, gy1 = g["y_range"]
+        table_x0 = min(col_xs)
+        table_x1 = max(col_xs)
 
-    full_span_h = [
-        h for h in h_lines
-        if h[1] <= table_x0 + 5 and h[2] >= table_x1 - 5
-    ]
-    if len(full_span_h) < 2:
-        return None
+        relevant_h = [
+            h for h in h_lines
+            if gy0 - 5 <= h[0] <= gy1 + 5
+            and h[1] <= table_x0 + 5 and h[2] >= table_x1 - 5
+        ]
+        row_ys = cluster([h[0] for h in relevant_h])
 
-    return {
-        "bbox": (table_x0, table_y0, table_x1, table_y1),
-        "row_ys": sorted(h_ys),
-        "col_xs": sorted(v_xs),
-    }
+        if len(row_ys) < 2:
+            continue
+
+        tables.append({
+            "bbox": (table_x0, min(row_ys), table_x1, max(row_ys)),
+            "row_ys": sorted(row_ys),
+            "col_xs": sorted(col_xs),
+        })
+
+    return tables
 
 
 @app.route("/convert-to-ppt-editable", methods=["POST"])
@@ -293,74 +311,77 @@ def convert_to_ppt_editable():
 
         drawings = page.get_drawings()
 
-        table_info = detect_table(drawings)
+        tables_info = detect_tables(drawings)
 
-        table_bbox = None
-        if table_info:
+        table_bboxes = []
+        for table_info in tables_info:
             table_bbox = table_info["bbox"]
+            table_bboxes.append(table_bbox)
             row_ys = table_info["row_ys"]
             col_xs = table_info["col_xs"]
 
             n_rows = len(row_ys) - 1
             n_cols = len(col_xs) - 1
 
-            if n_rows > 0 and n_cols > 0:
-                t_left = Emu(int(col_xs[0] * scale_x))
-                t_top = Emu(int(row_ys[0] * scale_y))
-                t_width = Emu(int((col_xs[-1] - col_xs[0]) * scale_x))
-                t_height = Emu(int((row_ys[-1] - row_ys[0]) * scale_y))
+            if n_rows <= 0 or n_cols <= 0:
+                continue
 
-                graphic_frame = slide.shapes.add_table(n_rows, n_cols, t_left, t_top, t_width, t_height)
-                pptx_table = graphic_frame.table
+            t_left = Emu(int(col_xs[0] * scale_x))
+            t_top = Emu(int(row_ys[0] * scale_y))
+            t_width = Emu(int((col_xs[-1] - col_xs[0]) * scale_x))
+            t_height = Emu(int((row_ys[-1] - row_ys[0]) * scale_y))
 
-                for i in range(n_cols):
-                    col_width = col_xs[i + 1] - col_xs[i]
-                    pptx_table.columns[i].width = Emu(int(col_width * scale_x))
+            graphic_frame = slide.shapes.add_table(n_rows, n_cols, t_left, t_top, t_width, t_height)
+            pptx_table = graphic_frame.table
 
-                for i in range(n_rows):
-                    row_height = row_ys[i + 1] - row_ys[i]
-                    pptx_table.rows[i].height = Emu(int(row_height * scale_y))
+            for i in range(n_cols):
+                col_width = col_xs[i + 1] - col_xs[i]
+                pptx_table.columns[i].width = Emu(int(col_width * scale_x))
 
-                page_text_dict = page.get_text("dict")
-                for block in page_text_dict["blocks"]:
-                    if block["type"] != 0:
-                        continue
-                    for line in block["lines"]:
-                        for span in line["spans"]:
-                            text = span["text"].strip()
-                            if not text:
-                                continue
+            for i in range(n_rows):
+                row_height = row_ys[i + 1] - row_ys[i]
+                pptx_table.rows[i].height = Emu(int(row_height * scale_y))
 
-                            cx = (span["bbox"][0] + span["bbox"][2]) / 2
-                            cy = (span["bbox"][1] + span["bbox"][3]) / 2
+            page_text_dict = page.get_text("dict")
+            for block in page_text_dict["blocks"]:
+                if block["type"] != 0:
+                    continue
+                for line in block["lines"]:
+                    for span in line["spans"]:
+                        text = span["text"].strip()
+                        if not text:
+                            continue
 
-                            if not (table_bbox[0] <= cx <= table_bbox[2] and table_bbox[1] <= cy <= table_bbox[3]):
-                                continue
+                        cx = (span["bbox"][0] + span["bbox"][2]) / 2
+                        cy = (span["bbox"][1] + span["bbox"][3]) / 2
 
-                            col_idx = None
-                            for i in range(n_cols):
-                                if col_xs[i] <= cx <= col_xs[i + 1]:
-                                    col_idx = i
-                                    break
+                        if not (table_bbox[0] <= cx <= table_bbox[2] and table_bbox[1] <= cy <= table_bbox[3]):
+                            continue
 
-                            row_idx = None
-                            for i in range(n_rows):
-                                if row_ys[i] <= cy <= row_ys[i + 1]:
-                                    row_idx = i
-                                    break
+                        col_idx = None
+                        for i in range(n_cols):
+                            if col_xs[i] <= cx <= col_xs[i + 1]:
+                                col_idx = i
+                                break
 
-                            if col_idx is None or row_idx is None:
-                                continue
+                        row_idx = None
+                        for i in range(n_rows):
+                            if row_ys[i] <= cy <= row_ys[i + 1]:
+                                row_idx = i
+                                break
 
-                            cell = pptx_table.cell(row_idx, col_idx)
-                            if cell.text_frame.text:
-                                cell.text_frame.text += " " + text
-                            else:
-                                cell.text_frame.text = text
+                        if col_idx is None or row_idx is None:
+                            continue
 
-                            for para in cell.text_frame.paragraphs:
-                                for run in para.runs:
-                                    run.font.size = Pt(max(int(span.get("size", 12) * 0.85), 6))
+                        cell = pptx_table.cell(row_idx, col_idx)
+                        if cell.text_frame.text:
+                            cell.text_frame.text += " " + text
+                        else:
+                            cell.text_frame.text = text
+
+                        for para in cell.text_frame.paragraphs:
+                            for run in para.runs:
+                                run.font.size = Pt(max(int(span.get("size", 12) * 0.85), 6))
 
         for drawing in drawings:
             for item in drawing["items"]:
@@ -369,10 +390,14 @@ def convert_to_ppt_editable():
                     x0, y0 = p1.x, p1.y
                     x1, y1 = p2.x, p2.y
 
-                    if table_bbox:
-                        if (table_bbox[0] - 2 <= x0 <= table_bbox[2] + 2 and
-                            table_bbox[1] - 2 <= y0 <= table_bbox[3] + 2):
-                            continue
+                    skip = False
+                    for tb in table_bboxes:
+                        if (tb[0] - 2 <= x0 <= tb[2] + 2 and
+                            tb[1] - 2 <= y0 <= tb[3] + 2):
+                            skip = True
+                            break
+                    if skip:
+                        continue
 
                     line_len_x = abs(x1 - x0)
                     line_len_y = abs(y1 - y0)
@@ -417,10 +442,14 @@ def convert_to_ppt_editable():
                 lcx = (lx0 + lx1) / 2
                 lcy = (ly0 + ly1) / 2
 
-                if table_bbox:
-                    if (table_bbox[0] - 2 <= lcx <= table_bbox[2] + 2 and
-                        table_bbox[1] - 2 <= lcy <= table_bbox[3] + 2):
-                        continue
+                skip = False
+                for tb in table_bboxes:
+                    if (tb[0] - 2 <= lcx <= tb[2] + 2 and
+                        tb[1] - 2 <= lcy <= tb[3] + 2):
+                        skip = True
+                        break
+                if skip:
+                    continue
 
                 all_lines.append({
                     "spans": line["spans"],
