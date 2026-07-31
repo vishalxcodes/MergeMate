@@ -187,6 +187,61 @@ def convert_to_excel():
 
     return send_file(output_path, as_attachment=True, download_name="converted.xlsx")
 
+def detect_table(drawings):
+    h_lines = []
+    v_lines = []
+
+    for drawing in drawings:
+        for item in drawing["items"]:
+            if item[0] != "l":
+                continue
+            p1, p2 = item[1], item[2]
+            x0, y0 = p1.x, p1.y
+            x1, y1 = p2.x, p2.y
+
+            if abs(y1 - y0) < 1 and abs(x1 - x0) > 5:
+                h_lines.append((round((y0 + y1) / 2, 1), min(x0, x1), max(x0, x1)))
+            elif abs(x1 - x0) < 1 and abs(y1 - y0) > 5:
+                v_lines.append((round((x0 + x1) / 2, 1), min(y0, y1), max(y0, y1)))
+
+    if len(h_lines) < 3 or len(v_lines) < 3:
+        return None
+
+    def cluster(values, tol=2):
+        values = sorted(values)
+        clusters = []
+        for v in values:
+            if clusters and v - clusters[-1][-1] <= tol:
+                clusters[-1].append(v)
+            else:
+                clusters.append([v])
+        return [sum(c) / len(c) for c in clusters]
+
+    h_ys = cluster([h[0] for h in h_lines])
+    v_xs = cluster([v[0] for v in v_lines])
+
+    if len(h_ys) < 2 or len(v_xs) < 2:
+        return None
+
+    table_x0 = min(v_xs)
+    table_x1 = max(v_xs)
+    table_y0 = min(h_ys)
+    table_y1 = max(h_ys)
+
+    full_span_h = [
+        h for h in h_lines
+        if h[1] <= table_x0 + 5 and h[2] >= table_x1 - 5
+    ]
+    if len(full_span_h) < 2:
+        return None
+
+    return {
+        "bbox": (table_x0, table_y0, table_x1, table_y1),
+        "row_ys": sorted(h_ys),
+        "col_xs": sorted(v_xs),
+    }
+
+
 @app.route("/convert-to-ppt-editable", methods=["POST"])
 def convert_to_ppt_editable():
     file = request.files["file"]
@@ -237,12 +292,87 @@ def convert_to_ppt_editable():
                 os.remove(img_path)
 
         drawings = page.get_drawings()
+
+        table_info = detect_table(drawings)
+
+        table_bbox = None
+        if table_info:
+            table_bbox = table_info["bbox"]
+            row_ys = table_info["row_ys"]
+            col_xs = table_info["col_xs"]
+
+            n_rows = len(row_ys) - 1
+            n_cols = len(col_xs) - 1
+
+            if n_rows > 0 and n_cols > 0:
+                t_left = Emu(int(col_xs[0] * scale_x))
+                t_top = Emu(int(row_ys[0] * scale_y))
+                t_width = Emu(int((col_xs[-1] - col_xs[0]) * scale_x))
+                t_height = Emu(int((row_ys[-1] - row_ys[0]) * scale_y))
+
+                graphic_frame = slide.shapes.add_table(n_rows, n_cols, t_left, t_top, t_width, t_height)
+                pptx_table = graphic_frame.table
+
+                for i in range(n_cols):
+                    col_width = col_xs[i + 1] - col_xs[i]
+                    pptx_table.columns[i].width = Emu(int(col_width * scale_x))
+
+                for i in range(n_rows):
+                    row_height = row_ys[i + 1] - row_ys[i]
+                    pptx_table.rows[i].height = Emu(int(row_height * scale_y))
+
+                page_text_dict = page.get_text("dict")
+                for block in page_text_dict["blocks"]:
+                    if block["type"] != 0:
+                        continue
+                    for line in block["lines"]:
+                        for span in line["spans"]:
+                            text = span["text"].strip()
+                            if not text:
+                                continue
+
+                            cx = (span["bbox"][0] + span["bbox"][2]) / 2
+                            cy = (span["bbox"][1] + span["bbox"][3]) / 2
+
+                            if not (table_bbox[0] <= cx <= table_bbox[2] and table_bbox[1] <= cy <= table_bbox[3]):
+                                continue
+
+                            col_idx = None
+                            for i in range(n_cols):
+                                if col_xs[i] <= cx <= col_xs[i + 1]:
+                                    col_idx = i
+                                    break
+
+                            row_idx = None
+                            for i in range(n_rows):
+                                if row_ys[i] <= cy <= row_ys[i + 1]:
+                                    row_idx = i
+                                    break
+
+                            if col_idx is None or row_idx is None:
+                                continue
+
+                            cell = pptx_table.cell(row_idx, col_idx)
+                            if cell.text_frame.text:
+                                cell.text_frame.text += " " + text
+                            else:
+                                cell.text_frame.text = text
+
+                            for para in cell.text_frame.paragraphs:
+                                for run in para.runs:
+                                    run.font.size = Pt(max(int(span.get("size", 12) * 0.85), 6))
+
         for drawing in drawings:
             for item in drawing["items"]:
                 if item[0] == "l":
                     p1, p2 = item[1], item[2]
                     x0, y0 = p1.x, p1.y
                     x1, y1 = p2.x, p2.y
+
+                    if table_bbox:
+                        if (table_bbox[0] - 2 <= x0 <= table_bbox[2] + 2 and
+                            table_bbox[1] - 2 <= y0 <= table_bbox[3] + 2):
+                            continue
 
                     line_len_x = abs(x1 - x0)
                     line_len_y = abs(y1 - y0)
@@ -276,43 +406,47 @@ def convert_to_ppt_editable():
         text_blocks = page.get_text("dict")["blocks"]
         text_blocks = [b for b in text_blocks if b["type"] == 0]
 
-        page_mid_x = (page_rect.x0 + page_rect.x1) / 2
-        left_col = [b for b in text_blocks if b["bbox"][0] < page_mid_x]
-        right_col = [b for b in text_blocks if b["bbox"][0] >= page_mid_x]
-
-        def merge_column(col_blocks):
-            col_blocks.sort(key=lambda b: b["bbox"][1])
-            merged = []
-            for block in col_blocks:
-                has_text = any(
-                    span["text"].strip()
-                    for line in block["lines"]
-                    for span in line["spans"]
-                )
+        all_lines = []
+        for block in text_blocks:
+            for line in block["lines"]:
+                has_text = any(span["text"].strip() for span in line["spans"])
                 if not has_text:
                     continue
 
-                x0, y0, x1, y1 = block["bbox"]
+                lx0, ly0, lx1, ly1 = line["bbox"]
+                lcx = (lx0 + lx1) / 2
+                lcy = (ly0 + ly1) / 2
 
-                if merged:
-                    prev = merged[-1]
-                    px0, py0, px1, py1 = prev["bbox"]
-                    vertical_gap = y0 - py1
-                    horizontal_overlap = min(x1, px1) - max(x0, px0)
-
-                    x_start_diff = abs(x0 - px0)
-
-                    if vertical_gap < 6 and horizontal_overlap > -20 and x_start_diff < 15:
-                        prev["lines"].extend(block["lines"])
-                        prev["bbox"] = (min(px0, x0), py0, max(px1, x1), max(py1, y1))
+                if table_bbox:
+                    if (table_bbox[0] - 2 <= lcx <= table_bbox[2] + 2 and
+                        table_bbox[1] - 2 <= lcy <= table_bbox[3] + 2):
                         continue
 
-                merged.append({"lines": list(block["lines"]), "bbox": (x0, y0, x1, y1)})
-            return merged
+                all_lines.append({
+                    "spans": line["spans"],
+                    "bbox": line["bbox"],
+                })
 
-        merged_blocks = merge_column(left_col) + merge_column(right_col)
+        all_lines.sort(key=lambda l: (l["bbox"][1], l["bbox"][0]))
 
-        for block in merged_blocks:
+        merged_lines = []
+        for line in all_lines:
+            x0, y0, x1, y1 = line["bbox"]
+
+            if merged_lines:
+                prev = merged_lines[-1]
+                px0, py0, px1, py1 = prev["bbox"]
+                vertical_gap = y0 - py1
+                x_start_diff = abs(x0 - px0)
+
+                if vertical_gap < 4 and vertical_gap >= -1 and x_start_diff < 10:
+                    prev["spans_list"].append(line["spans"])
+                    prev["bbox"] = (min(px0, x0), py0, max(px1, x1), max(py1, y1))
+                    continue
+
+            merged_lines.append({"spans_list": [line["spans"]], "bbox": (x0, y0, x1, y1)})
+
+        for block in merged_lines:
             x0, y0, x1, y1 = block["bbox"]
 
             left = Emu(int(x0 * scale_x))
@@ -325,14 +459,14 @@ def convert_to_ppt_editable():
             tf.word_wrap = True
 
             first_para = True
-            for line in block["lines"]:
+            for spans in block["spans_list"]:
                 if first_para:
                     para = tf.paragraphs[0]
                     first_para = False
                 else:
                     para = tf.add_paragraph()
 
-                for span in line["spans"]:
+                for span in spans:
                     text = span["text"]
                     if not text:
                         continue
