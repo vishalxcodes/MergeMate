@@ -13,6 +13,7 @@ from pptx import Presentation
 from pptx.util import Inches, Emu, Pt
 from pptx.dml.color import RGBColor
 from pptx.enum.dml import MSO_LINE_DASH_STYLE
+from pptx.enum.text import PP_ALIGN, MSO_ANCHOR
 from PIL import Image
 import io
 
@@ -257,6 +258,7 @@ def detect_tables(drawings):
             "bbox": (table_x0, min(row_ys), table_x1, max(row_ys)),
             "row_ys": sorted(row_ys),
             "col_xs": sorted(col_xs),
+            "v_lines": g["v_lines"],
         })
 
     return tables
@@ -362,6 +364,7 @@ def convert_to_ppt_editable():
             table_bboxes.append(table_bbox)
             row_ys = table_info["row_ys"]
             col_xs = table_info["col_xs"]
+            v_lines_raw = table_info.get("v_lines", [])
 
             n_rows = len(row_ys) - 1
             n_cols = len(col_xs) - 1
@@ -392,6 +395,45 @@ def convert_to_ppt_editable():
                 for cell in row.cells:
                     set_cell_borders(cell)
 
+            tol = 2
+            row_groups = []
+            for r in range(n_rows):
+                ry0, ry1 = row_ys[r], row_ys[r + 1]
+                divider_exists = [False] * (n_cols - 1)
+                for i in range(n_cols - 1):
+                    bx = col_xs[i + 1]
+                    for (vx, vy0, vy1) in v_lines_raw:
+                        if abs(vx - bx) <= tol and vy0 <= ry0 + tol and vy1 >= ry1 - tol:
+                            divider_exists[i] = True
+                            break
+
+                groups = []
+                c = 0
+                while c < n_cols:
+                    start = c
+                    while c < n_cols - 1 and not divider_exists[c]:
+                        c += 1
+                    end = c
+                    groups.append((start, end))
+                    c += 1
+                row_groups.append(groups)
+
+            for r in range(n_rows):
+                for (start, end) in row_groups[r]:
+                    if end > start:
+                        try:
+                            pptx_table.cell(r, start).merge(pptx_table.cell(r, end))
+                        except Exception:
+                            pass
+
+            def find_col_for_row(row_idx, cx):
+                for (start, end) in row_groups[row_idx]:
+                    gx0 = col_xs[start]
+                    gx1 = col_xs[end + 1]
+                    if gx0 - 1 <= cx <= gx1 + 1:
+                        return start
+                return None
+
             cell_lines = {}
 
             page_text_dict = page.get_text("dict")
@@ -410,35 +452,31 @@ def convert_to_ppt_editable():
                     if not (table_bbox[0] <= cx <= table_bbox[2] and table_bbox[1] <= cy <= table_bbox[3]):
                         continue
 
-                    col_idx = None
-                    for i in range(n_cols):
-                        if col_xs[i] <= cx <= col_xs[i + 1]:
-                            col_idx = i
-                            break
-
                     row_idx = None
                     for i in range(n_rows):
                         if row_ys[i] <= cy <= row_ys[i + 1]:
                             row_idx = i
                             break
 
-                    if col_idx is None or row_idx is None:
+                    if row_idx is None:
+                        continue
+
+                    col_idx = find_col_for_row(row_idx, cx)
+                    if col_idx is None:
                         continue
 
                     key = (row_idx, col_idx)
                     cell_lines.setdefault(key, []).append((cy, line_text))
-                    
-                    for key in cell_lines:
-                        entries = sorted(cell_lines[key], key=lambda t: t[0])
-                        merged = []
-                        for cy, text in entries:
-                            if merged and abs(cy - merged[-1][0]) < 3:
-                                merged[-1] = (merged[-1][0], merged[-1][1] + " " + text)
-                            else:
-                                merged.append((cy, text))
-                        cell_lines[key] = merged
 
-            from pptx.enum.text import PP_ALIGN, MSO_ANCHOR
+            for key in cell_lines:
+                entries = sorted(cell_lines[key], key=lambda t: t[0])
+                merged = []
+                for cy, text in entries:
+                    if merged and abs(cy - merged[-1][0]) < 3:
+                        merged[-1] = (merged[-1][0], merged[-1][1] + " " + text)
+                    else:
+                        merged.append((cy, text))
+                cell_lines[key] = merged
 
             align_mode = PP_ALIGN.LEFT if n_cols <= 6 else PP_ALIGN.CENTER
 
