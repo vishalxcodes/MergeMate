@@ -223,7 +223,7 @@ def detect_tables(drawings):
         placed = False
         for g in groups:
             gy0, gy1 = g["y_range"]
-            if not (v[2] < gy0 - 10 or v[1] > gy1 + 10):
+            if not (v[2] < gy0 - 3 or v[1] > gy1 + 3):
                 g["v_lines"].append(v)
                 g["y_range"] = (min(gy0, v[1]), max(gy1, v[2]))
                 placed = True
@@ -241,10 +241,12 @@ def detect_tables(drawings):
         table_x0 = min(col_xs)
         table_x1 = max(col_xs)
 
+        table_width = table_x1 - table_x0
         relevant_h = [
             h for h in h_lines
             if gy0 - 5 <= h[0] <= gy1 + 5
-            and h[1] <= table_x0 + 5 and h[2] >= table_x1 - 5
+            and h[2] > table_x0 and h[1] < table_x1
+            and (min(h[2], table_x1) - max(h[1], table_x0)) > table_width * 0.15
         ]
         row_ys = cluster([h[0] for h in relevant_h])
 
@@ -258,6 +260,34 @@ def detect_tables(drawings):
         })
 
     return tables
+
+def set_cell_borders(cell, color="000000", width_pt=0.75):
+    from pptx.oxml.ns import qn
+    tc = cell._tc
+    tcPr = tc.get_or_add_tcPr()
+
+    for tag in ("a:lnL", "a:lnR", "a:lnT", "a:lnB"):
+        existing = tcPr.find(qn(tag))
+        if existing is not None:
+            tcPr.remove(existing)
+
+        ln = tcPr.makeelement(qn(tag), {})
+        ln.set("w", str(int(width_pt * 12700)))
+        ln.set("cap", "flat")
+        ln.set("cmpd", "sng")
+        ln.set("algn", "ctr")
+
+        solidFill = ln.makeelement(qn("a:solidFill"), {})
+        srgbClr = solidFill.makeelement(qn("a:srgbClr"), {})
+        srgbClr.set("val", color)
+        solidFill.append(srgbClr)
+        ln.append(solidFill)
+
+        prstDash = ln.makeelement(qn("a:prstDash"), {})
+        prstDash.set("val", "solid")
+        ln.append(prstDash)
+
+        tcPr.append(ln)
 
 
 @app.route("/convert-to-ppt-editable", methods=["POST"])
@@ -289,6 +319,19 @@ def convert_to_ppt_editable():
                 base_image = pdf_doc.extract_image(xref)
                 img_bytes = base_image["image"]
                 img_ext = base_image["ext"]
+                smask_xref = base_image.get("smask", 0)
+
+                if smask_xref:
+                    base_img = Image.open(io.BytesIO(img_bytes)).convert("RGB")
+                    mask_info = pdf_doc.extract_image(smask_xref)
+                    mask_img = Image.open(io.BytesIO(mask_info["image"])).convert("L")
+                    if mask_img.size != base_img.size:
+                        mask_img = mask_img.resize(base_img.size)
+                    base_img.putalpha(mask_img)
+                    buf = io.BytesIO()
+                    base_img.save(buf, format="PNG")
+                    img_bytes = buf.getvalue()
+                    img_ext = "png"
             except Exception:
                 continue
 
@@ -338,50 +381,77 @@ def convert_to_ppt_editable():
                 col_width = col_xs[i + 1] - col_xs[i]
                 pptx_table.columns[i].width = Emu(int(col_width * scale_x))
 
-            for i in range(n_rows):
-                row_height = row_ys[i + 1] - row_ys[i]
-                pptx_table.rows[i].height = Emu(int(row_height * scale_y))
+            for row in pptx_table.rows:
+                for cell in row.cells:
+                    cell.margin_left = Pt(0.5)
+                    cell.margin_right = Pt(0.5)
+                    cell.margin_top = Pt(0.5)
+                    cell.margin_bottom = Pt(0.5)
+
+            for row in pptx_table.rows:
+                for cell in row.cells:
+                    set_cell_borders(cell)
+
+            cell_lines = {}
 
             page_text_dict = page.get_text("dict")
             for block in page_text_dict["blocks"]:
                 if block["type"] != 0:
                     continue
                 for line in block["lines"]:
-                    for span in line["spans"]:
-                        text = span["text"].strip()
-                        if not text:
-                            continue
+                    line_text = "".join(span["text"] for span in line["spans"]).strip()
+                    if not line_text:
+                        continue
 
-                        cx = (span["bbox"][0] + span["bbox"][2]) / 2
-                        cy = (span["bbox"][1] + span["bbox"][3]) / 2
+                    lx0, ly0, lx1, ly1 = line["bbox"]
+                    cx = (lx0 + lx1) / 2
+                    cy = (ly0 + ly1) / 2
 
-                        if not (table_bbox[0] <= cx <= table_bbox[2] and table_bbox[1] <= cy <= table_bbox[3]):
-                            continue
+                    if not (table_bbox[0] <= cx <= table_bbox[2] and table_bbox[1] <= cy <= table_bbox[3]):
+                        continue
 
-                        col_idx = None
-                        for i in range(n_cols):
-                            if col_xs[i] <= cx <= col_xs[i + 1]:
-                                col_idx = i
-                                break
+                    col_idx = None
+                    for i in range(n_cols):
+                        if col_xs[i] <= cx <= col_xs[i + 1]:
+                            col_idx = i
+                            break
 
-                        row_idx = None
-                        for i in range(n_rows):
-                            if row_ys[i] <= cy <= row_ys[i + 1]:
-                                row_idx = i
-                                break
+                    row_idx = None
+                    for i in range(n_rows):
+                        if row_ys[i] <= cy <= row_ys[i + 1]:
+                            row_idx = i
+                            break
 
-                        if col_idx is None or row_idx is None:
-                            continue
+                    if col_idx is None or row_idx is None:
+                        continue
 
-                        cell = pptx_table.cell(row_idx, col_idx)
-                        if cell.text_frame.text:
-                            cell.text_frame.text += " " + text
-                        else:
-                            cell.text_frame.text = text
+                    key = (row_idx, col_idx)
+                    cell_lines.setdefault(key, []).append((cy, line_text))
+                    
+                    for key in cell_lines:
+                        entries = sorted(cell_lines[key], key=lambda t: t[0])
+                        merged = []
+                        for cy, text in entries:
+                            if merged and abs(cy - merged[-1][0]) < 3:
+                                merged[-1] = (merged[-1][0], merged[-1][1] + " " + text)
+                            else:
+                                merged.append((cy, text))
+                        cell_lines[key] = merged
 
-                        for para in cell.text_frame.paragraphs:
-                            for run in para.runs:
-                                run.font.size = Pt(max(int(span.get("size", 12) * 0.85), 6))
+            from pptx.enum.text import PP_ALIGN, MSO_ANCHOR
+
+            align_mode = PP_ALIGN.LEFT if n_cols <= 6 else PP_ALIGN.CENTER
+
+            for (row_idx, col_idx), lines in cell_lines.items():
+                lines.sort(key=lambda t: t[0])
+                cell = pptx_table.cell(row_idx, col_idx)
+                cell.text_frame.text = "\n".join(t[1] for t in lines)
+                cell.vertical_anchor = MSO_ANCHOR.MIDDLE
+                for para in cell.text_frame.paragraphs:
+                    para.alignment = align_mode
+                    for run in para.runs:
+                        run.font.size = Pt(7)
+                        run.font.color.rgb = RGBColor(0, 0, 0)
 
         for drawing in drawings:
             for item in drawing["items"]:
@@ -456,27 +526,12 @@ def convert_to_ppt_editable():
                     "bbox": line["bbox"],
                 })
 
-        all_lines.sort(key=lambda l: (l["bbox"][1], l["bbox"][0]))
-
-        merged_lines = []
         for line in all_lines:
             x0, y0, x1, y1 = line["bbox"]
+            spans_list = [line["spans"]]
 
-            if merged_lines:
-                prev = merged_lines[-1]
-                px0, py0, px1, py1 = prev["bbox"]
-                vertical_gap = y0 - py1
-                x_start_diff = abs(x0 - px0)
-
-                if vertical_gap < 4 and vertical_gap >= -1 and x_start_diff < 10:
-                    prev["spans_list"].append(line["spans"])
-                    prev["bbox"] = (min(px0, x0), py0, max(px1, x1), max(py1, y1))
-                    continue
-
-            merged_lines.append({"spans_list": [line["spans"]], "bbox": (x0, y0, x1, y1)})
-
-        for block in merged_lines:
-            x0, y0, x1, y1 = block["bbox"]
+            line_height = y1 - y0
+            bbox_font_size = line_height * 0.75
 
             left = Emu(int(x0 * scale_x))
             top = Emu(int(y0 * scale_y))
@@ -485,10 +540,10 @@ def convert_to_ppt_editable():
 
             textbox = slide.shapes.add_textbox(left, top, width, height)
             tf = textbox.text_frame
-            tf.word_wrap = True
+            tf.word_wrap = False
 
             first_para = True
-            for spans in block["spans_list"]:
+            for spans in spans_list:
                 if first_para:
                     para = tf.paragraphs[0]
                     first_para = False
@@ -514,7 +569,8 @@ def convert_to_ppt_editable():
                     run.text = text
 
                     font_size = span.get("size", 18)
-                    run.font.size = Pt(max(int(font_size * 0.9), 8))
+                    final_size = max(font_size, bbox_font_size)
+                    run.font.size = Pt(max(int(final_size), 6))
 
                     font_name = span.get("font")
                     if font_name and not has_pua:
@@ -535,6 +591,7 @@ def convert_to_ppt_editable():
     os.remove(input_path)
 
     return send_file(output_path, as_attachment=True, download_name="converted.pptx")
+
 
 
 if __name__ == "__main__":
