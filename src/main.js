@@ -41,6 +41,8 @@ import { renderPdfToXlsView } from "./views/pdfToXlsView";
 import { initPdfToXlsView } from "./controllers/pdfToXlsController";
 import { renderPdfToPptEditableView } from "./views/pdfToPptEditableView";
 import { initPdfToPptEditableView } from "./controllers/pdfToPptEditableController";
+import { renderImageCompressView } from "./views/imageCompressView";
+import { initImageCompressView } from "./controllers/imageCompressController";
 
 
 const app = document.querySelector("#app");
@@ -305,6 +307,13 @@ if (e.target.closest('[data-tool="pdf-to-ppt-editable"]')) {
     app.innerHTML = renderPdfToPptEditableView();
 
     initPdfToPptEditableView();
+
+}
+if (e.target.closest('[data-tool="image-compress"]')) {
+
+    app.innerHTML = renderImageCompressView();
+
+    initImageCompressView();
 
 }
 });
