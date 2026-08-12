@@ -1,3 +1,6 @@
+import dotenv from 'dotenv';
+dotenv.config({ path: '../.env' });
+import mongoose from 'mongoose';
 import express from "express";
 import multer from "multer";
 import cors from "cors";
@@ -6,19 +9,23 @@ import path from "path";
 import FormData from "form-data";
 import fetch from "node-fetch";
 import { fileURLToPath } from "url";
+import feedbackRoutes from './routes/feedback.js';
+import adminRoutes from './routes/admin.js';
+
+mongoose.connect(process.env.MONGODB_URI)
+  .then(() => console.log('MongoDB connected'))
+  .catch((err) => console.error('MongoDB connection error:', err));
 
 const app = express();
-
 const PORT = process.env.PORT || 3000;
 
-const __filename =
-    fileURLToPath(import.meta.url);
-
-const __dirname =
-    path.dirname(__filename);
-
-
 app.use(cors());
+app.use(express.json());
+app.use('/api/feedback', feedbackRoutes);
+app.use('/api/admin', adminRoutes);
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 
 const uploadDir =
@@ -336,13 +343,8 @@ async function convertPdfServiceWithRetry(inputPath, originalFilename, endpoint,
 
 app.post(
     "/api/convert/docx-to-pdf",
-
     upload.single("file"),
-
-    app.post(
-  "/api/convert/docx-to-pdf",
-  upload.single("file"),
-  async (req, res) => {
+    async (req, res) => {
 
     if (!req.file) {
       return res.status(400).json({ error: "No DOCX file uploaded" });
@@ -376,8 +378,8 @@ app.post(
       fs.unlink(inputPath, () => {});
       isConverting = false;
     }
-  }
-));
+  
+});
 
 
 app.listen(

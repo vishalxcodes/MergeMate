@@ -4,6 +4,7 @@ registerSW({
 });
 import "./style.css";
 import "./styles/converter.css";
+import "./styles/admin.css";
 import { renderDashboard } from "./views/dashboard";
 import { renderMergeView } from "./views/mergeView";
 import { initMergeView } from "./controllers/mergeController";
@@ -43,6 +44,12 @@ import { renderPdfToPptEditableView } from "./views/pdfToPptEditableView";
 import { initPdfToPptEditableView } from "./controllers/pdfToPptEditableController";
 import { renderImageCompressView } from "./views/imageCompressView";
 import { initImageCompressView } from "./controllers/imageCompressController";
+import { getFeedbackHTML } from './views/feedbackView.js';
+import { initFeedbackForm } from './controllers/feedbackController.js';
+import { initAdminPage } from './controllers/adminController.js';
+
+
+
 
 
 const app = document.querySelector("#app");
@@ -74,6 +81,11 @@ function showToast(message, type = "success") {
 window.showToast = showToast;
 let currentMode = "professional";
 showDashboard();
+if (window.location.pathname === '/admin') {
+  initAdminPage();
+} else {
+  showDashboard();
+}
 
 function showDashboard() {
     currentMode = "professional";
@@ -91,8 +103,33 @@ function showDashboard() {
     },350);
 
     initTheme();
+    initFeedback();
 
 }
+
+function initFeedback() {
+  const feedbackFloatBtn = document.getElementById('feedbackFloatBtn');
+  const feedbackOverlay = document.getElementById('feedbackModalOverlay');
+  const feedbackCloseBtn = document.getElementById('feedbackModalClose');
+  const feedbackSection = document.getElementById('feedbackSection');
+
+  feedbackFloatBtn.addEventListener('click', () => {
+    feedbackSection.innerHTML = getFeedbackHTML();
+    initFeedbackForm();
+    feedbackOverlay.classList.remove('hidden');
+  });
+
+  feedbackCloseBtn.addEventListener('click', () => {
+    feedbackOverlay.classList.add('hidden');
+  });
+
+  feedbackOverlay.addEventListener('click', (e) => {
+    if (e.target === feedbackOverlay) {
+      feedbackOverlay.classList.add('hidden');
+    }
+  });
+}
+
 
 function showStudentDashboard() {
 

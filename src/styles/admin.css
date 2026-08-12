@@ -1,0 +1,76 @@
+.admin-container {
+  max-width: 900px;
+  margin: 40px auto;
+  padding: 24px;
+}
+
+.admin-container h2 {
+  color: #fff;
+  margin-bottom: 20px;
+}
+
+/* Login form */
+#adminLoginForm {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-width: 320px;
+}
+
+#adminPasswordInput {
+  background: #2a2640;
+  border: 1px solid #3f3a5c;
+  border-radius: 8px;
+  padding: 10px 12px;
+  color: #fff;
+  font-size: 14px;
+  outline: none;
+}
+
+#adminPasswordInput:focus {
+  border-color: #7c3aed;
+}
+
+#adminLoginForm button {
+  background: linear-gradient(135deg, #2563eb, #7c3aed);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+#adminLoginStatus {
+  color: #f87171;
+  font-size: 13px;
+}
+
+/* Feedback table */
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #1e1b2e;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.admin-table th,
+.admin-table td {
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 1px solid #3f3a5c;
+  color: #e2e8f0;
+  font-size: 14px;
+}
+
+.admin-table th {
+  background: #2a2640;
+  color: #a78bfa;
+  font-weight: 600;
+}
+
+.admin-table tr:hover {
+  background: #2a2640;
+}
