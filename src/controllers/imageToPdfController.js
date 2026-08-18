@@ -187,36 +187,47 @@ btn.disabled = true;
 btn.textContent = "Creating PDF...";
 
 const pdfDoc = await PDFDocument.create();
+
+// A4 size in points (standard PDF unit): 595 x 842
+const A4_WIDTH = 595;
+const A4_HEIGHT = 842;
+const MARGIN = 40; // margin on all sides
+
 for(const imageFile of selectedImages){
-const imageBytes = await imageFile.arrayBuffer();
-let image;
+    const imageBytes = await imageFile.arrayBuffer();
+    let image;
 
-if (imageFile.type === "image/png") {
+    if (imageFile.type === "image/png") {
+        image = await pdfDoc.embedPng(imageBytes);
+    } else {
+        image = await pdfDoc.embedJpg(imageBytes);
+    }
 
-    image = await pdfDoc.embedPng(imageBytes);
+    const { width: imgWidth, height: imgHeight } = image;
 
-} else {
+    // Available space inside margins
+    const maxWidth = A4_WIDTH - (MARGIN * 2);
+    const maxHeight = A4_HEIGHT - (MARGIN * 2);
 
-    image = await pdfDoc.embedJpg(imageBytes);
+    // Scale image to fit within margins, preserving aspect ratio
+    const widthRatio = maxWidth / imgWidth;
+    const heightRatio = maxHeight / imgHeight;
+    const scale = Math.min(widthRatio, heightRatio);
 
-}
-const { width, height } = image.scale(1);
+    const drawWidth = imgWidth * scale;
+    const drawHeight = imgHeight * scale;
 
-const page = pdfDoc.addPage([width, height]);
-page.drawImage(image, {
+    // Center the image on the page
+    const x = (A4_WIDTH - drawWidth) / 2;
+    const y = (A4_HEIGHT - drawHeight) / 2;
 
-    x: 0,
-
-    y: 0,
-
-    width,
-
-    height,
-
-});
-
-
-
+    const page = pdfDoc.addPage([A4_WIDTH, A4_HEIGHT]);
+    page.drawImage(image, {
+        x,
+        y,
+        width: drawWidth,
+        height: drawHeight,
+    });
 }
 
 const pdfBytes = await pdfDoc.save();
@@ -225,23 +236,15 @@ const blob = new Blob([pdfBytes], {
 });
 
 const url = URL.createObjectURL(blob);
-
 const a = document.createElement("a");
-
 a.href = url;
-
 const today = new Date().toISOString().split("T")[0];
-
 a.download = `MergeMate-Images-${today}.pdf`;
-
 a.click();
-
 URL.revokeObjectURL(url);
 
 btn.disabled = false;
 btn.textContent = `Create PDF (${selectedImages.length})`;
 
 showToast("PDF Created Successfully");
-
-    
 }
