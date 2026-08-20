@@ -250,7 +250,6 @@ async function compressPDFs() {
 // Reusable function — compress with given quality/scale settings
 async function compressWithSettings(originalBytes, imageQuality, renderScale) {
 
-    // Fresh independent copy every time, from the untouched snapshot
     const bufferCopy = originalBytes.slice().buffer;
 
     const pdf = await pdfjsLib.getDocument({
@@ -258,6 +257,11 @@ async function compressWithSettings(originalBytes, imageQuality, renderScale) {
     }).promise;
 
     const newPdf = await PDFDocument.create();
+
+    // Standard A4 size in points
+    const A4_WIDTH = 595;
+    const A4_HEIGHT = 842;
+    const MARGIN = 0; // no margin needed here since we want to preserve original page proportions closely
 
     for (let i = 1; i <= pdf.numPages; i++) {
 
@@ -285,13 +289,19 @@ async function compressWithSettings(originalBytes, imageQuality, renderScale) {
 
         const image = await newPdf.embedJpg(jpgBytes);
 
-        const newPage = newPdf.addPage([image.width, image.height]);
+        // Get the ORIGINAL page's dimensions (before our re-render scaling)
+        const originalViewport = page.getViewport({ scale: 1 });
+        const originalWidth = originalViewport.width;
+        const originalHeight = originalViewport.height;
+
+        // Create new page at the ORIGINAL page's true point-size (not the rendered pixel size)
+        const newPage = newPdf.addPage([originalWidth, originalHeight]);
 
         newPage.drawImage(image, {
             x: 0,
             y: 0,
-            width: image.width,
-            height: image.height
+            width: originalWidth,
+            height: originalHeight,
         });
 
     }
