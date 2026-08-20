@@ -135,6 +135,18 @@ export function renderCompressView() {
             </div>
 
         </label>
+        <label>
+  <input type="radio" name="compressionLevel" value="custom" />
+  Custom Target Size
+</label>
+
+<div id="targetSizeInputs" style="display: none;">
+  <input type="number" id="targetSizeValue" placeholder="e.g. 500" min="1" />
+  <select id="targetSizeUnit">
+    <option value="KB">KB</option>
+    <option value="MB" selected>MB</option>
+  </select>
+</div>
 
     </div>
 
