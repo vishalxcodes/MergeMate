@@ -1,11 +1,34 @@
 export function renderDashboard() {
   return `
+    <nav class="main-navbar">
+      <div class="navbar-logo">
+        <img src="/icon-192.png" alt="MergeMate" />
+        <span>MergeMate</span>
+      </div>
+       <div class="navbar-links">
+          <a href="#" data-tool="merge">Merge</a>
+          <a href="#" data-tool="split">Split</a>
+          <a href="#" data-tool="compress">Compress</a>
+          <a href="#" data-tool="extract">Extract</a>
+           
+
+        </div>
+
+      <div class="navbar-right">
+        <a href="#" data-tool="student-mode" class="navbar-student-badge">🎓</a>
+
+        <div class="navbar-auth">
+          <button id="signInBtn">Sign In</button>
+          <button id="signUpBtn">Sign Up</button>
+        </div>
+      </div>
+    </nav>
     <div class="container">
 
       <div class="header">
         <div>
-          <h1>📄 MergeMate</h1>
-          <p>Fast • Free • Private PDF Toolkit</p>
+          <h1>PDF Toolkit</h1>
+          <p>Fast • Free • Private   </p>
         </div>
 
        <button id="themeBtn" title="Toggle Theme">

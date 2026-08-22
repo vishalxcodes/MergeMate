@@ -337,6 +337,7 @@ button:disabled{
     margin-bottom:35px;
     background:linear-gradient(135deg,#4f46e5,#7c3aed);
     color:white;
+    
 }
 
 .header h1{
@@ -345,12 +346,16 @@ button:disabled{
     font-size:34px;
 }
 
-.header p{
-    margin-top:6px;
-    margin-bottom:0;
-    color:rgba(255,255,255,.85);
-    text-align:left;
+.header p {
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  display: flex;
+  justify-content: space-between;
+  max-width: 280px;
+  color: white;
 }
+
 
 #themeBtn{
 width:48px;
@@ -1975,3 +1980,4 @@ body.dark .unlock-drop-zone .drop-icon {
     flex-wrap: wrap;
   }
 }
+

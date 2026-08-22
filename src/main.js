@@ -5,6 +5,7 @@ registerSW({
 import "./style.css";
 import "./styles/converter.css";
 import "./styles/admin.css";
+import "./styles/navbar.css";
 import { renderDashboard } from "./views/dashboard";
 import { renderMergeView } from "./views/mergeView";
 import { initMergeView } from "./controllers/mergeController";

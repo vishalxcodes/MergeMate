@@ -1,0 +1,155 @@
+
+.main-navbar {
+  display: flex;
+  align-items: center;
+  gap: 40px;
+  
+}
+
+.navbar-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 18px;
+  color: #fff;
+}
+
+.navbar-logo img {
+  width: 32px;
+  height: 30px;
+  border-radius: 6px;
+}
+
+/* NEW: links + auth ko ek group banake right side pe le jao */
+.navbar-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-left: auto;
+}
+
+.navbar-links {
+  display: flex;
+  gap: 24px;
+}
+
+.navbar-links a {
+  position: relative;
+  color: #94a3b8;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  padding-bottom: 4px;
+  transition: color 0.2s ease;
+}
+
+.navbar-links a::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 0%;
+  height: 2px;
+  background: linear-gradient(135deg, #2563eb, #7c3aed);
+  transition: width 0.25s ease;
+}
+
+body.dark .navbar-links a:hover {
+  color: #fff;
+}
+
+.navbar-links a:hover::after {
+  width: 100%;
+}
+
+.navbar-auth {
+  display: flex;
+  gap: 10px;
+}
+
+.navbar-auth button {
+  padding: 8px 18px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: transform 0.15s ease, background 0.2s ease, box-shadow 0.2s ease;
+  white-space: nowrap;
+}
+
+#signInBtn {
+  background: transparent;
+  color: #fff;
+  border: 1px solid #3f3a5c;
+}
+
+body.dark #signInBtn:hover {
+  background: #211d33;
+  border-color: #7c3aed;
+}
+
+#signUpBtn {
+  background: linear-gradient(135deg, #2563eb, #7c3aed);
+  color: white;
+}
+
+#signUpBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(124, 58, 237, 0.4);
+}
+
+@media (max-width: 768px) {
+  .navbar-links {
+    display: none;
+  }
+}
+html,body{
+    overflow-x: hidden;
+}
+
+.navbar-student-badge {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 25px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  background: rgba(124, 58, 237, 0.15);
+  border: none;
+  color: #c4b5fd !important;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.navbar-student-badge:hover {
+  background: rgba(124, 58, 237, 0.3);
+  border: none;
+  color: #fff !important;
+  text-decoration: none;
+}
+
+.navbar-student-badge::after {
+  display: none; /* underline effect wale links se alag rakho */
+}
+
+/* Light theme (default) text contrast fix */
+.navbar-logo span {
+  color: #1e1b2e;
+}
+
+#signInBtn {
+  color: #1e1b2e;
+  border-color: #c4b0e8;
+}
+
+/* Dark theme override */
+body.dark .navbar-logo span {
+  color: #fff;
+}
+
+body.dark #signInBtn {
+  color: #fff;
+  border-color: #3f3a5c;
+}
