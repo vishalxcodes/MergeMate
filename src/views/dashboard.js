@@ -18,8 +18,8 @@ export function renderDashboard() {
         <a href="#" data-tool="student-mode" class="navbar-student-badge">🎓</a>
 
         <div class="navbar-auth">
-          <button id="signInBtn">Sign In</button>
-          <button id="signUpBtn">Sign Up</button>
+         <button id="signInBtn" data-tool="login">Sign In</button>
+<button id="signUpBtn" data-tool="signup">Sign Up</button>
         </div>
       </div>
     </nav>
@@ -177,18 +177,76 @@ export function renderDashboard() {
 
 </div>
 
+       </div>
     </div>
-     <footer class="app-footer">
+
+    <section class="faq-section">
+      <h2 class="faq-title">Frequently Asked Questions</h2>
+
+      <div class="faq-list">
+        <div class="faq-item">
+          <button class="faq-question">
+            Is MergeMate really free to use?
+            <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-answer">
+            <p>Yes, all tools on MergeMate are completely free. No hidden charges, no subscriptions.</p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-question">
+            Are my files safe and private?
+            <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-answer">
+            <p>Your files are processed securely and are not stored permanently on our servers. They're automatically deleted after processing.</p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-question">
+            Do I need to create an account to use the tools?
+            <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-answer">
+            <p>No, you can use all PDF tools without signing up. Creating an account is optional and helps you access additional features in the future.</p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-question">
+            What file size limits apply?
+            <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-answer">
+            <p>Files up to 25MB are supported for most tools. If you need to work with larger files, try compressing them first.</p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-question">
+            Can I use MergeMate on my phone?
+            <span class="faq-icon">+</span>
+          </button>
+          <div class="faq-answer">
+            <p>Yes, MergeMate works on any device with a browser - desktop, tablet, or mobile. You can even install it as an app.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="app-footer">
+      <div class="footer-social">
         <a href="https://www.instagram.com/mergemate.app?igsh=bHQzdXFtbGF6bmtl" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
           <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
         </a>
         <a href="https://github.com/vishalxcodes/MergeMate" target="_blank" rel="noopener noreferrer" aria-label="GitHub">
           <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg>
         </a>
-        <p>&copy; 2026 MergeMate. All rights reserved.</p>
-      </footer>
-
-    </div>
+      </div>
+      <p>&copy; 2026 MergeMate. All rights reserved.</p>
+    </footer>
 
     <!-- Floating Feedback Button -->
 <button id="feedbackFloatBtn" aria-label="Give Feedback">💬</button>

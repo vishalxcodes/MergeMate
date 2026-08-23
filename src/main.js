@@ -6,6 +6,8 @@ import "./style.css";
 import "./styles/converter.css";
 import "./styles/admin.css";
 import "./styles/navbar.css";
+import "./styles/auth.css";
+import "./styles/faq.css";
 import { renderDashboard } from "./views/dashboard";
 import { renderMergeView } from "./views/mergeView";
 import { initMergeView } from "./controllers/mergeController";
@@ -48,14 +50,56 @@ import { initImageCompressView } from "./controllers/imageCompressController";
 import { getFeedbackHTML } from './views/feedbackView.js';
 import { initFeedbackForm } from './controllers/feedbackController.js';
 import { initAdminPage } from './controllers/adminController.js';
-
+import { renderSignup, renderLogin } from "./views/authView.js";
+import { initSignup, initLogin } from "./controllers/authController.js";
 
 
 
 
 const app = document.querySelector("#app");
+export async function checkLoggedIn() {
+  try {
+    const res = await fetch("http://localhost:3000/api/auth/me", {
+      credentials: "include",
+    });
 
-function showToast(message, type = "success") {
+    if (!res.ok) {
+      updateNavbarForLoggedOut();
+      return;
+    }
+
+    const data = await res.json();
+    updateNavbarForLoggedIn(data.user);
+  } catch (err) {
+    updateNavbarForLoggedOut();
+  }
+}
+
+function updateNavbarForLoggedIn(user) {
+  const authSection = document.querySelector(".navbar-auth");
+  if (!authSection) return;
+
+  authSection.innerHTML = `
+    <span class="navbar-username">👤 ${user.name}</span>
+    <button id="logoutBtn">Logout</button>
+  `;
+
+  document.getElementById("logoutBtn").addEventListener("click", async () => {
+    await fetch("http://localhost:3000/api/auth/logout", {
+      method: "POST",
+      credentials: "include",
+    });
+    location.reload();
+  });
+}
+
+function updateNavbarForLoggedOut() {
+  // kuch nahi karna - default Sign In/Sign Up already dikh raha hai
+}
+
+checkLoggedIn();
+
+export function showToast(message, type = "success") {
 
     const toast = document.createElement("div");
 
@@ -353,6 +397,19 @@ if (e.target.closest('[data-tool="image-compress"]')) {
 
     initImageCompressView();
 
+}
+if (e.target.closest('[data-tool="signup"]')) {
+    app.innerHTML = renderSignup();
+    initSignup();
+}
+
+if (e.target.closest('[data-tool="login"]')) {
+    app.innerHTML = renderLogin();
+    initLogin();
+}
+if (e.target.closest(".faq-question")) {
+    const item = e.target.closest(".faq-item");
+    item.classList.toggle("active");
 }
 });
 

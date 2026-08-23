@@ -1,0 +1,126 @@
+/* ===== FAQ Section ===== */
+.faq-section {
+  max-width: 800px;
+  margin: 60px auto;
+  padding: 0 24px;
+}
+
+.faq-title {
+  text-align: center;
+  font-size: 28px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 32px;
+}
+
+.faq-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.faq-item {
+  background: rgba(30, 27, 46, 0.6);
+  border: 1px solid #2a2640;
+  border-radius: 12px;
+  overflow: hidden;
+  transition: border-color 0.2s ease;
+}
+
+.faq-item.active {
+  border-color: #7c3aed;
+}
+
+.faq-question {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 20px;
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.faq-icon {
+  font-size: 20px;
+  color: #a78bfa;
+  transition: transform 0.25s ease;
+  flex-shrink: 0;
+  margin-left: 12px;
+}
+
+.faq-item.active .faq-icon {
+  transform: rotate(45deg);
+}
+
+.faq-answer {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease, padding 0.3s ease;
+  padding: 0 20px;
+}
+
+.faq-item.active .faq-answer {
+  max-height: 200px;
+  padding: 0 20px 18px;
+}
+
+.faq-answer p {
+  color: #94a3b8;
+  font-size: 14px;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* ===== Footer ===== */
+.app-footer {
+  text-align: center;
+  padding: 40px 24px 30px;
+  border-top: 1px solid #2a2640;
+  margin-top: 40px;
+}
+
+.footer-social {
+  display: flex;
+  justify-content: center;
+  gap: 18px;
+  margin-bottom: 16px;
+}
+
+.footer-social a {
+  color: #94a3b8;
+  transition: color 0.2s ease, transform 0.15s ease;
+}
+
+.footer-social a:hover {
+  color: #a78bfa;
+  transform: translateY(-2px);
+}
+
+.app-footer p {
+  color: #6b6584;
+  font-size: 13px;
+}
+
+/* Light theme */
+body:not(.dark) .faq-title {
+  color: #1e1b2e;
+}
+
+body:not(.dark) .faq-item {
+  background: #ffffff;
+  border-color: #e5e0f5;
+}
+
+body:not(.dark) .faq-question {
+  color: #1e1b2e;
+}
+
+body:not(.dark) .app-footer {
+  border-top-color: #e5e0f5;
+}

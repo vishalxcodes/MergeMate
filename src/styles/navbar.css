@@ -153,3 +153,42 @@ body.dark #signInBtn {
   color: #fff;
   border-color: #3f3a5c;
 }
+
+.navbar-username {
+  color: #c4b5fd;
+  font-size: 14px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+#logoutBtn {
+  padding: 8px 18px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid #3f3a5c;
+  background: transparent;
+  color: #fff;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+#logoutBtn:hover {
+  background: #211d33;
+  border-color: #7c3aed;
+}
+
+body:not(.dark) .navbar-username {
+  color: #7c3aed;
+}
+
+body:not(.dark) #logoutBtn {
+  color: #1e1b2e;
+  border-color: #c4b0e8;
+}
+
+body:not(.dark) #logoutBtn:hover {
+  background: #f3eefc;
+}
