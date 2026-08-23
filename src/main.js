@@ -59,7 +59,7 @@ import { initSignup, initLogin } from "./controllers/authController.js";
 const app = document.querySelector("#app");
 export async function checkLoggedIn() {
   try {
-    const res = await fetch("http://localhost:3000/api/auth/me", {
+    const res = await fetch(`${AUTH_API}/me`, {
       credentials: "include",
     });
 
@@ -85,7 +85,7 @@ function updateNavbarForLoggedIn(user) {
   `;
 
   document.getElementById("logoutBtn").addEventListener("click", async () => {
-    await fetch("http://localhost:3000/api/auth/logout", {
+    await fetch(`${AUTH_API}/logout`, {
       method: "POST",
       credentials: "include",
     });
@@ -96,7 +96,9 @@ function updateNavbarForLoggedIn(user) {
 function updateNavbarForLoggedOut() {
   // kuch nahi karna - default Sign In/Sign Up already dikh raha hai
 }
-
+const AUTH_API = window.location.hostname === "localhost"
+  ? "http://localhost:3000/api/auth"
+  : "https://mergemate-emgy.onrender.com/api/auth";
 checkLoggedIn();
 
 export function showToast(message, type = "success") {
