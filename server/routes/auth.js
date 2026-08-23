@@ -94,12 +94,12 @@ router.post("/google", async (req, res) => {
 
     let user = await User.findOne({ email });
 
-    if (!user) {
-      user = await User.create({ name, email, googleId, authProvider: "google" });
-    } else if (!user.googleId) {
-      user.googleId = googleId;
-      await user.save();
-    }
+    res.cookie("token", token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+  });
 
     const JWT_SECRET = process.env.JWT_SECRET;
     const token = jwt.sign({ id: user._id }, JWT_SECRET, { expiresIn: "7d" });
