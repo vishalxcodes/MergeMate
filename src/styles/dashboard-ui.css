@@ -1,0 +1,505 @@
+/* ========================================================
+   DASHBOARD UI REFRESH - STEP 1 (hero trust row + tool cards)
+   Import AFTER style.css so these rules win.
+   ======================================================== */
+
+/* Wider container like mockup (max-w-7xl) */
+.main-container {
+  max-width: 1280px;
+}
+
+/* ---------- HERO ---------- */
+.trust-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  margin-bottom: 18px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.trust-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.trust-green  { color: #059669; }
+.trust-indigo { color: var(--primary); }
+.trust-muted  { color: var(--text-muted); }
+.trust-dot    { color: var(--text-muted); opacity: 0.6; }
+
+body.dark .trust-green  { color: #34d399; }
+body.dark .trust-indigo { color: #a5b4fc; }
+
+.hero-header h1 {
+  font-size: clamp(32px, 5vw, 56px);
+  letter-spacing: -1.5px;
+  max-width: 780px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.search-wrapper input {
+  border-radius: 16px;
+  padding-top: 15px;
+  padding-bottom: 15px;
+}
+
+/* ---------- TOOL GRID ---------- */
+.tool-grid {
+  gap: 20px;
+}
+
+@media (min-width: 1180px) {
+  .tool-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* ---------- TOOL CARD LAYOUT ----------
+   Layout:  [icon]            [tag]
+            Title
+            Description
+            ------------------------
+            Open Tool            ->
+   Done with grid + display:contents so HTML stays the same. */
+.tool-card {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-rows: auto auto 1fr auto;
+  column-gap: 10px;
+  padding: 24px;
+  border-radius: 18px;
+}
+
+.tool-card-body,
+.card-top-meta {
+  display: contents;
+}
+
+.tool-card .icon-wrap {
+  grid-column: 1;
+  grid-row: 1;
+  margin-bottom: 16px;
+  transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+.tool-card .tool-tag {
+  grid-column: 2;
+  grid-row: 1;
+  align-self: center;
+  margin-bottom: 16px;
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+.tool-card h3 {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  font-size: 17px;
+  margin-bottom: 6px;
+  transition: color 0.2s ease;
+}
+
+.tool-card p {
+  grid-column: 1 / -1;
+  grid-row: 3;
+  align-self: start;
+}
+
+.tool-card .card-footer {
+  grid-column: 1 / -1;
+  grid-row: 4;
+  justify-content: space-between;
+  margin-top: 20px;
+  padding-top: 14px;
+  color: var(--text-muted);
+  transform: none !important;
+  transition: color 0.2s ease;
+}
+
+.card-arrow {
+  display: inline-block;
+  font-size: 15px;
+  transition: transform 0.2s ease;
+}
+
+/* ---------- HOVER ---------- */
+.tool-card:hover {
+  transform: translateY(-4px);
+}
+
+.tool-card:hover h3,
+.tool-card:hover .card-footer {
+  color: var(--primary);
+}
+
+body.dark .tool-card:hover h3,
+body.dark .tool-card:hover .card-footer {
+  color: #a5b4fc;
+}
+
+.tool-card:hover .card-arrow {
+  transform: translateX(5px);
+}
+
+/* Icon box fills with solid color on hover */
+.tool-card:hover .icon-wrap { transform: none; color: #fff; }
+.tool-card:hover .icon-indigo  { background: #4f46e5; }
+.tool-card:hover .icon-blue    { background: #2563eb; }
+.tool-card:hover .icon-purple  { background: #9333ea; }
+.tool-card:hover .icon-rose    { background: #e11d48; }
+.tool-card:hover .icon-emerald { background: #10b981; }
+.tool-card:hover .icon-amber   { background: #d97706; }
+.tool-card:hover .icon-sky     { background: #0284c7; }
+
+/* ---------- TAG COLOR = ICON COLOR ---------- */
+.icon-indigo  + .tool-card-body .tool-tag { color: #4f46e5; background: rgba(79, 70, 229, 0.1);  border-color: rgba(79, 70, 229, 0.2); }
+.icon-blue    + .tool-card-body .tool-tag { color: #2563eb; background: rgba(37, 99, 235, 0.1);  border-color: rgba(37, 99, 235, 0.2); }
+.icon-purple  + .tool-card-body .tool-tag { color: #9333ea; background: rgba(147, 51, 234, 0.1); border-color: rgba(147, 51, 234, 0.2); }
+.icon-rose    + .tool-card-body .tool-tag { color: #e11d48; background: rgba(225, 29, 72, 0.1);  border-color: rgba(225, 29, 72, 0.2); }
+.icon-emerald + .tool-card-body .tool-tag { color: #059669; background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.2); }
+.icon-amber   + .tool-card-body .tool-tag { color: #b45309; background: rgba(217, 119, 6, 0.1);  border-color: rgba(217, 119, 6, 0.2); }
+.icon-sky     + .tool-card-body .tool-tag { color: #0369a1; background: rgba(2, 132, 199, 0.1);  border-color: rgba(2, 132, 199, 0.2); }
+
+body.dark .icon-indigo  + .tool-card-body .tool-tag { color: #a5b4fc; }
+body.dark .icon-blue    + .tool-card-body .tool-tag { color: #93c5fd; }
+body.dark .icon-purple  + .tool-card-body .tool-tag { color: #d8b4fe; }
+body.dark .icon-rose    + .tool-card-body .tool-tag { color: #fda4af; }
+body.dark .icon-emerald + .tool-card-body .tool-tag { color: #6ee7b7; }
+body.dark .icon-amber   + .tool-card-body .tool-tag { color: #fde047; }
+body.dark .icon-sky     + .tool-card-body .tool-tag { color: #7dd3fc; }
+
+/* ========================================================
+   STEP 3 - STUDENT BANNER (paste at END of dashboard-ui.css)
+   ======================================================== */
+
+.student-mode-card {
+  gap: 32px;
+  padding: 36px 40px;
+  border-radius: 28px;
+  cursor: default;
+  background: linear-gradient(135deg, #312e81 0%, #3730a3 50%, #581c87 100%);
+  border: 1px solid rgba(129, 140, 248, 0.35);
+  box-shadow: 0 20px 44px rgba(49, 46, 129, 0.35);
+}
+
+.student-mode-card:hover {
+  transform: none;
+  box-shadow: 0 20px 44px rgba(49, 46, 129, 0.35);
+}
+
+.student-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  margin-bottom: 14px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: #c7d2fe;
+  letter-spacing: 0.6px;
+}
+
+.student-left {
+  max-width: 660px;
+}
+
+.student-left h2 {
+  font-size: 32px;
+  letter-spacing: -0.6px;
+}
+
+.student-left p {
+  margin-top: 10px;
+  font-size: 15px;
+  line-height: 1.6;
+  color: rgba(224, 231, 255, 0.92);
+  max-width: 620px;
+}
+
+/* ---------- Checklist ---------- */
+.student-checks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 22px;
+  margin-top: 18px;
+}
+
+.student-checks span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: #e0e7ff;
+}
+
+.check-dot {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1.5px solid #67e8f9;
+  color: #67e8f9;
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* ---------- Right side ---------- */
+.student-right {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 270px;
+  flex-shrink: 0;
+}
+
+.student-cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 15px 24px;
+  border-radius: 16px;
+  background: #ffffff;
+  color: #312e81;
+  font-size: 15px;
+  font-weight: 800;
+  text-decoration: none;
+  cursor: pointer;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.25);
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.student-cta:hover {
+  transform: translateY(-2px);
+  background: #eef2ff;
+}
+
+.student-cta .cta-arrow {
+  transition: transform 0.2s ease;
+}
+
+.student-cta:hover .cta-arrow {
+  transform: translateX(4px);
+}
+
+.student-chips {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.student-chip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: #ffffff;
+  font-size: 12.5px;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.student-chip:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-1px);
+}
+
+/* ---------- Category pill count ---------- */
+.pill-count {
+  opacity: 0.55;
+  font-weight: 500;
+  margin-left: 2px;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 900px) {
+  .student-mode-card {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: left;
+    padding: 28px 22px;
+  }
+
+  .student-right {
+    min-width: 0;
+  }
+}
+/* ========================================================
+   STEP 8 - FOOTER (paste at END of dashboard-ui.css)
+   ======================================================== */
+
+.app-footer {
+  margin-top: 70px;
+  padding: 40px 0 28px 0;
+  background: linear-gradient(180deg, transparent, rgba(99, 102, 241, 0.06));
+}
+
+.ft-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+/* ---------- top row ---------- */
+.ft-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 22px 28px;
+}
+
+.ft-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+}
+
+.ft-logo {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  object-fit: contain;
+}
+
+.ft-brand-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.ft-name {
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.4px;
+  color: var(--text-main);
+}
+
+.ft-tagline {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.ft-links {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px 26px;
+}
+
+.ft-links a {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.ft-links a:hover {
+  color: var(--primary);
+}
+
+body.dark .ft-links a:hover {
+  color: #a5b4fc;
+}
+
+.ft-social {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ft-social a {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  border: 1px solid var(--card-border);
+  background: var(--card-bg);
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.ft-social a:hover {
+  color: var(--primary);
+  border-color: var(--primary);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 18px -6px rgba(99, 102, 241, 0.45);
+}
+
+/* ---------- bottom row ---------- */
+.ft-bottom {
+  margin-top: 28px;
+  padding-top: 20px;
+  border-top: 1px solid var(--card-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px 20px;
+}
+
+.ft-note {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.ft-note svg {
+  color: #10b981;
+  flex-shrink: 0;
+}
+
+.ft-copy {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.ft-heart {
+  color: #f43f5e;
+}
+
+/* ---------- responsive ---------- */
+@media (max-width: 900px) {
+  .ft-top {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .ft-bottom {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .ft-note {
+    justify-content: center;
+  }
+}

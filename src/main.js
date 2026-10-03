@@ -8,6 +8,10 @@ import "./styles/admin.css";
 import "./styles/navbar.css";
 import "./styles/auth.css";
 import "./styles/faq.css";
+import './styles/dashboard-ui.css';
+import './styles/tool-ui.css';
+import './utils/faqToggle.js';
+import './styles/student.css';
 import { renderDashboard } from "./views/dashboard";
 import { renderMergeView } from "./views/mergeView";
 import { initMergeView } from "./controllers/mergeController";
@@ -52,6 +56,9 @@ import { initFeedbackForm } from './controllers/feedbackController.js';
 import { initAdminPage } from './controllers/adminController.js';
 import { renderSignup, renderLogin } from "./views/authView.js";
 import { initSignup, initLogin } from "./controllers/authController.js";
+import { renderHandwritingCalibrationView } from "./views/handwritingCalibrationView";
+import { initHandwritingCalibrationView } from "./controllers/handwritingCalibrationController";
+
 
 
 
@@ -183,14 +190,11 @@ function showStudentDashboard() {
     app.innerHTML = renderStudentDashboard();
     document.body.classList.add("student-mode");
 
+    initTheme();
+    checkLoggedIn();
+
     app.classList.add("page-enter");
-
-    setTimeout(()=>{
-
-        app.classList.remove("page-enter");
-
-    },350);
-
+    setTimeout(() => { app.classList.remove("page-enter"); }, 350);
 }
 
 function initTheme() {
@@ -306,7 +310,7 @@ if (e.target.closest('[data-tool="compress"]')) {
        initCompressView();
 
 }
-if (e.target.id === "backBtn") {
+if (e.target.closest("#backBtn, .js-back")) {
 
     if (currentMode === "student") {
 
@@ -413,5 +417,43 @@ if (e.target.closest(".faq-question")) {
     const item = e.target.closest(".faq-item");
     item.classList.toggle("active");
 }
+if (e.target.closest('[data-tool="handwriting-calibration"]')) {
+
+    app.innerHTML = renderHandwritingCalibrationView();
+
+    initHandwritingCalibrationView();
+
+}
+});
+// Search filter
+document.addEventListener('input', (e) => {
+  if (e.target && e.target.id === 'toolSearchInput') {
+    const val = e.target.value.toLowerCase().trim();
+    document.querySelectorAll('.tool-card').forEach(card => {
+      const text = card.innerText.toLowerCase();
+      card.style.display = text.includes(val) ? 'flex' : 'none';
+    });
+  }
 });
 
+// Category pills filter
+document.addEventListener('click', (e) => {
+  if (e.target && e.target.classList.contains('cat-pill')) {
+    document.querySelectorAll('.cat-pill').forEach(btn => btn.classList.remove('active'));
+    e.target.classList.add('active');
+    const cat = e.target.getAttribute('data-category');
+    document.querySelectorAll('.tool-card').forEach(card => {
+      const cats = card.getAttribute('data-category') || '';
+      card.style.display = (cat === 'all' || cats.includes(cat)) ? 'flex' : 'none';
+    });
+  }
+});
+
+// FAQ Accordion click
+document.addEventListener('click', (e) => {
+  const faqBtn = e.target.closest('.faq-question');
+  if (faqBtn) {
+    const faqItem = faqBtn.closest('.faq-item');
+    faqItem.classList.toggle('active');
+  }
+});

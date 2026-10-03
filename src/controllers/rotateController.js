@@ -110,7 +110,7 @@ export function initRotateView() {
 
         }
 
-        const angle = Number(rotateAngle.value);
+        const angle = Number(document.querySelector('input[name="rotDir"]:checked').value);
 
         await rotatePages(
             selectedFiles[0],

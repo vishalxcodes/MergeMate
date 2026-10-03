@@ -9,6 +9,9 @@ from openpyxl.styles import Font, Border, Side, PatternFill
 from openpyxl.utils import get_column_letter
 import fitz
 import gc
+import cv2
+import numpy as np
+import base64
 from pptx import Presentation
 from pptx.util import Inches, Emu, Pt
 from pptx.dml.color import RGBColor
@@ -16,6 +19,7 @@ from pptx.enum.dml import MSO_LINE_DASH_STYLE
 from pptx.enum.text import PP_ALIGN, MSO_ANCHOR
 from PIL import Image
 import io
+from hw_segmenter import segment_blobs
 
 
 app = Flask(__name__)
@@ -1267,6 +1271,181 @@ def convert_to_ppt_editable():
     os.remove(input_path)
 
     return send_file(output_path, as_attachment=True, download_name="converted.pptx")
+# =========================
+# HANDWRITING SEGMENTATION
+# =========================
+
+HANDWRITING_EXPECTED_SEQUENCE = (
+    list("abcdefghijklmnopqrstuvwxyz")
+    + list("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+    + list("0123456789")
+    + list(".,?!'\"-")
+)
+
+
+def _hw_detect_and_crop_paper(img):
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    blurred = cv2.GaussianBlur(gray, (7, 7), 0)
+    _, bright_mask = cv2.threshold(blurred, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+
+    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (25, 25))
+    closed = cv2.morphologyEx(bright_mask, cv2.MORPH_CLOSE, kernel)
+
+    contours, _ = cv2.findContours(closed, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    if not contours:
+        return img
+
+    largest = max(contours, key=cv2.contourArea)
+    img_area = img.shape[0] * img.shape[1]
+    if cv2.contourArea(largest) < img_area * 0.15:
+        return img
+
+    peri = cv2.arcLength(largest, True)
+    approx = cv2.approxPolyDP(largest, 0.02 * peri, True)
+    if len(approx) == 4:
+        box = approx.reshape(4, 2).astype(np.float32)
+    else:
+        rect = cv2.minAreaRect(largest)
+        box = cv2.boxPoints(rect)
+
+    pts = box[np.argsort(box[:, 1])]
+    top_two = pts[:2][np.argsort(pts[:2][:, 0])]
+    bottom_two = pts[2:][np.argsort(pts[2:][:, 0])]
+    ordered = np.array([top_two[0], top_two[1], bottom_two[1], bottom_two[0]], dtype=np.float32)
+
+    (tl, tr, br, bl) = ordered
+    width = int(max(np.linalg.norm(tr - tl), np.linalg.norm(br - bl)))
+    height = int(max(np.linalg.norm(bl - tl), np.linalg.norm(br - tr)))
+    if width < 10 or height < 10:
+        return img
+
+    dst = np.array([[0, 0], [width - 1, 0], [width - 1, height - 1], [0, height - 1]], dtype=np.float32)
+    matrix = cv2.getPerspectiveTransform(ordered, dst)
+    warped = cv2.warpPerspective(img, matrix, (width, height))
+
+    top_margin = max(1, int(height * 0.03))
+    right_margin = max(1, int(width * 0.03))
+    left_margin = max(1, int(width * 0.006))
+    bottom_margin = max(1, int(height * 0.006))
+    warped = warped[top_margin:height - bottom_margin, left_margin:width - right_margin]
+
+    return warped
+
+
+def _hw_load_and_binarize(image_bytes):
+    file_bytes = np.frombuffer(image_bytes, np.uint8)
+    img = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
+    if img is None:
+        raise ValueError("Could not decode image")
+
+    img = _hw_detect_and_crop_paper(img)
+
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    blurred = cv2.GaussianBlur(gray, (5, 5), 0)
+    binary = cv2.adaptiveThreshold(
+        blurred, 255,
+        cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+        cv2.THRESH_BINARY_INV,
+        blockSize=35,
+        C=15,
+    )
+    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2, 2))
+    cleaned = cv2.morphologyEx(binary, cv2.MORPH_OPEN, kernel)
+    return img, cleaned
+
+
+def _hw_detect_rows(binary, min_row_height=10, gap_threshold_ratio=0.003, vertical_bridge_px=20):
+    h, w = binary.shape
+    bridge_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (1, vertical_bridge_px))
+    bridged = cv2.dilate(binary, bridge_kernel, iterations=1)
+
+    row_sums = np.sum(bridged > 0, axis=1)
+    ink_threshold = max(1, int(w * gap_threshold_ratio))
+    has_ink = row_sums > ink_threshold
+
+    rows = []
+    in_row = False
+    start = 0
+    for y in range(h):
+        if has_ink[y] and not in_row:
+            in_row = True
+            start = y
+        elif not has_ink[y] and in_row:
+            in_row = False
+            if y - start >= min_row_height:
+                rows.append((start, y))
+    if in_row and h - start >= min_row_height:
+        rows.append((start, h))
+    return rows
+
+
+def _hw_detect_blobs_in_row(binary, y_start, y_end, min_area=25, merge_gap_px=6, merge_gap_py=10):
+    row_slice = binary[y_start:y_end, :]
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (merge_gap_px, merge_gap_py))
+    dilated = cv2.dilate(row_slice, kernel, iterations=1)
+
+    num_labels, labels, stats, _ = cv2.connectedComponentsWithStats(dilated, connectivity=8)
+
+    blobs = []
+    for label in range(1, num_labels):
+        x, y, w, h, area = stats[label]
+        if area < min_area:
+            continue
+        crop = row_slice[y:y + h, x:x + w]
+        blobs.append({"x": int(x), "y": int(y_start + y), "w": int(w), "h": int(h), "crop": crop})
+
+    blobs.sort(key=lambda b: b["x"])
+    return blobs
+
+
+def _hw_crop_to_base64_png(crop):
+    success, buf = cv2.imencode(".png", crop)
+    if not success:
+        return None
+    return base64.b64encode(buf.tobytes()).decode("ascii")
+
+
+@app.route("/segment-handwriting", methods=["POST"])
+def segment_handwriting():
+    if "file" not in request.files:
+        return {"error": "No file uploaded"}, 400
+ 
+    file = request.files["file"]
+    if file.filename == "":
+        return {"error": "Empty filename"}, 400
+ 
+    try:
+        image_bytes = file.read()
+        img, binary = _hw_load_and_binarize(image_bytes)
+    except Exception as e:
+        return {"error": f"Could not read image: {e}"}, 400
+ 
+    scale = binary.shape[1] / 1000.0
+ 
+    # new: strokes -> attach dots -> tilt-aware line grouping -> reading order
+    all_blobs, row_sizes = segment_blobs(binary, scale)
+ 
+    detected = len(all_blobs)
+    expected = len(HANDWRITING_EXPECTED_SEQUENCE)
+ 
+    glyphs = {}
+    for expected_char, blob in zip(HANDWRITING_EXPECTED_SEQUENCE, all_blobs):
+        encoded = _hw_crop_to_base64_png(blob["crop"])
+        if encoded:
+            glyphs[expected_char] = encoded
+ 
+    gc.collect()
+    missing = [c for c in HANDWRITING_EXPECTED_SEQUENCE if c not in glyphs]
+    print("detected:", detected, "| rows:", row_sizes, "| missing:", missing)
+ 
+    return {
+        "success": detected == expected,
+        "detected_count": detected,
+        "expected_count": expected,
+        "row_sizes": row_sizes,      # handy for debugging, e.g. [15, 11, 15, 11, 10, 7]
+        "glyphs": glyphs,
+    }
+ 
 
 
 

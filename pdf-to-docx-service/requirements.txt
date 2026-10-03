@@ -5,3 +5,5 @@ pdfplumber
 openpyxl
 pymupdf
 python-pptx
+opencv-python-headless
+numpy

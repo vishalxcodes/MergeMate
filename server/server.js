@@ -52,7 +52,7 @@ if (!fs.existsSync(uploadDir)) {
     );
 
 }
-
+const PDF_SERVICE_URL = process.env.PDF_SERVICE_URL || "https://mergemate-pdf-to-docx.onrender.com";
 let isConverting = false;
 
 const upload =
@@ -199,6 +199,45 @@ const upload =
 
     });
 
+    const uploadImage =
+    multer({
+
+        dest: uploadDir,
+
+        limits: {
+
+            fileSize:
+                25 * 1024 * 1024
+
+        },
+
+        fileFilter: (req, file, cb) => {
+
+            const name =
+                file.originalname.toLowerCase();
+
+            const isImage =
+                name.endsWith(".jpg") ||
+                name.endsWith(".jpeg") ||
+                name.endsWith(".png") ||
+                name.endsWith(".webp");
+
+            if (!isImage) {
+
+                return cb(
+                    new Error(
+                        "Only image files are allowed"
+                    )
+                );
+
+            }
+
+            cb(null, true);
+
+        }
+
+    });
+
    async function waitForGotenbergReady(maxWaitMs = 150000) {
   const startTime = Date.now();
   let attemptCount = 0;
@@ -281,7 +320,7 @@ async function waitForPdfServiceReady(maxWaitMs = 300000) {
     attemptCount++;
     try {
       const healthResponse = await fetch(
-        "https://mergemate-pdf-to-docx.onrender.com/health",
+         `${PDF_SERVICE_URL}/health`,
         { method: "GET" }
       );
 
@@ -319,7 +358,7 @@ async function convertPdfServiceWithRetry(inputPath, originalFilename, endpoint,
       });
 
       const response = await fetch(
-        `https://mergemate-pdf-to-docx.onrender.com/${endpoint}`,
+        `${PDF_SERVICE_URL}/${endpoint}`,
         {
           method: "POST",
           body: form,
@@ -679,6 +718,46 @@ app.post(
     } catch (error) {
       console.error(error);
       res.status(500).json({ error: "PDF to editable PPT conversion failed" });
+    } finally {
+      fs.unlink(inputPath, () => {});
+      isConverting = false;
+    }
+  }
+);
+
+app.post(
+  "/api/handwriting/segment",
+  uploadImage.single("file"),
+  async (req, res) => {
+
+    if (!req.file) {
+      return res.status(400).json({ error: "No image uploaded" });
+    }
+
+    if (isConverting) {
+      fs.unlink(req.file.path, () => {});
+      return res.status(429).json({
+        error: "Another conversion is already running. Please wait.",
+      });
+    }
+
+    isConverting = true;
+    const inputPath = req.file.path;
+
+    try {
+      const response = await convertPdfServiceWithRetry(
+        inputPath,
+        req.file.originalname,
+        "segment-handwriting"
+      );
+
+      const result = await response.json();
+
+      res.json(result);
+
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: "Handwriting processing failed" });
     } finally {
       fs.unlink(inputPath, () => {});
       isConverting = false;
