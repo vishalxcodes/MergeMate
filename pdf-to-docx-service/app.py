@@ -1,4 +1,4 @@
-from flask import Flask, request, send_file
+from flask import Flask, request, send_file, Response
 from pdf2docx import Converter
 import os
 import uuid
@@ -19,7 +19,9 @@ from pptx.enum.dml import MSO_LINE_DASH_STYLE
 from pptx.enum.text import PP_ALIGN, MSO_ANCHOR
 from PIL import Image
 import io
-from hw_segmenter import segment_blobs
+from hw_segmenter import segment_blobs, orientation_score
+from hw_generate import generate_pdf, glyphs_from_request, load_dev_glyphs, MAX_CHARS
+
 
 
 app = Flask(__name__)
@@ -1283,63 +1285,82 @@ HANDWRITING_EXPECTED_SEQUENCE = (
 )
 
 
-def _hw_detect_and_crop_paper(img):
+def _hw_paper_contour(img):
+    """The sheet = the biggest smooth, bright region.  Carpet, book covers and tablecloth are
+    textured, so they are left out even where they are bright.  The pen strokes are erased first
+    (morphological closing) so the handwriting itself does not count as texture."""
+    H, W = img.shape[:2]
+    k = max(11, int(0.008 * max(H, W))) | 1
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    blurred = cv2.GaussianBlur(gray, (7, 7), 0)
-    _, bright_mask = cv2.threshold(blurred, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-
-    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (25, 25))
-    closed = cv2.morphologyEx(bright_mask, cv2.MORPH_CLOSE, kernel)
-
-    contours, _ = cv2.findContours(closed, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    clean = cv2.morphologyEx(gray, cv2.MORPH_CLOSE, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (k, k)))
+    _, otsu = cv2.threshold(cv2.GaussianBlur(clean, (7, 7), 0), 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+    g = cv2.GaussianBlur(clean, (5, 5), 0).astype(np.float32)
+    gx = cv2.Sobel(g, cv2.CV_32F, 1, 0, ksize=3)
+    gy = cv2.Sobel(g, cv2.CV_32F, 0, 1, ksize=3)
+    tex = cv2.GaussianBlur(np.sqrt(gx * gx + gy * gy), (0, 0), 10)
+    mask = ((otsu > 0) & (tex < 4.5)).astype(np.uint8) * 255
+    mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, np.ones((15, 15), np.uint8))
+    mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (41, 41)))
+    contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     if not contours:
-        return img
-
+        return None
     largest = max(contours, key=cv2.contourArea)
-    img_area = img.shape[0] * img.shape[1]
-    if cv2.contourArea(largest) < img_area * 0.15:
+    return largest if cv2.contourArea(largest) >= 0.15 * H * W else None
+ 
+ 
+def _hw_detect_and_crop_paper(img):
+    contour = _hw_paper_contour(img)
+    if contour is None:
         return img
-
-    peri = cv2.arcLength(largest, True)
-    approx = cv2.approxPolyDP(largest, 0.02 * peri, True)
+ 
+    peri = cv2.arcLength(contour, True)
+    approx = cv2.approxPolyDP(contour, 0.02 * peri, True)
     if len(approx) == 4:
         box = approx.reshape(4, 2).astype(np.float32)
     else:
-        rect = cv2.minAreaRect(largest)
-        box = cv2.boxPoints(rect)
-
+        box = cv2.boxPoints(cv2.minAreaRect(contour))
+ 
     pts = box[np.argsort(box[:, 1])]
     top_two = pts[:2][np.argsort(pts[:2][:, 0])]
     bottom_two = pts[2:][np.argsort(pts[2:][:, 0])]
     ordered = np.array([top_two[0], top_two[1], bottom_two[1], bottom_two[0]], dtype=np.float32)
-
+ 
     (tl, tr, br, bl) = ordered
     width = int(max(np.linalg.norm(tr - tl), np.linalg.norm(br - bl)))
     height = int(max(np.linalg.norm(bl - tl), np.linalg.norm(br - tr)))
     if width < 10 or height < 10:
         return img
-
+ 
     dst = np.array([[0, 0], [width - 1, 0], [width - 1, height - 1], [0, height - 1]], dtype=np.float32)
     matrix = cv2.getPerspectiveTransform(ordered, dst)
     warped = cv2.warpPerspective(img, matrix, (width, height))
-
+ 
     top_margin = max(1, int(height * 0.03))
     right_margin = max(1, int(width * 0.03))
-    left_margin = max(1, int(width * 0.006))
-    bottom_margin = max(1, int(height * 0.006))
-    warped = warped[top_margin:height - bottom_margin, left_margin:width - right_margin]
-
-    return warped
-
-
-def _hw_load_and_binarize(image_bytes):
+    bottom_margin = max(1, int(height * 0.015))
+    return warped[top_margin:height - bottom_margin, 0:width - right_margin]
+ 
+ 
+def _hw_load_and_binarize(image_bytes, rotate=None):
     file_bytes = np.frombuffer(image_bytes, np.uint8)
     img = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
     if img is None:
         raise ValueError("Could not decode image")
-
+    # Work at a fixed size: phone photos are often 4000+ px and the thresholds below are tuned for
+    # ~2600 px.  (Also keeps memory low on the server.)
+    longest = max(img.shape[:2])
+    if longest > 2600:
+        f = 2600.0 / longest
+        img = cv2.resize(img, None, fx=f, fy=f, interpolation=cv2.INTER_AREA)
+    if rotate == "cw":
+        img = cv2.rotate(img, cv2.ROTATE_90_CLOCKWISE)
+    elif rotate == "ccw":
+        img = cv2.rotate(img, cv2.ROTATE_90_COUNTERCLOCKWISE)
+    elif rotate == "180":
+        img = cv2.rotate(img, cv2.ROTATE_180)
+ 
     img = _hw_detect_and_crop_paper(img)
-
+ 
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     blurred = cv2.GaussianBlur(gray, (5, 5), 0)
     binary = cv2.adaptiveThreshold(
@@ -1352,6 +1373,27 @@ def _hw_load_and_binarize(image_bytes):
     kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2, 2))
     cleaned = cv2.morphologyEx(binary, cv2.MORPH_OPEN, kernel)
     return img, cleaned
+ 
+ 
+def _hw_segment_auto(image_bytes, rotate=None):
+    """Segment the calibration photo.  If the photo is sideways / upside down, the right rotation
+    is found automatically (upright first, so normal photos cost nothing extra).
+    Pass rotate="cw" | "ccw" | "180" | "none" to force one."""
+    if rotate in ("cw", "ccw", "180", "none"):
+        options = [rotate]
+    else:
+        options = ["none", "ccw", "cw", "180"]
+ 
+    best = None
+    for rot in options:
+        img, binary = _hw_load_and_binarize(image_bytes, None if rot == "none" else rot)
+        blobs, row_sizes = segment_blobs(binary, binary.shape[1] / 1000.0)
+        score = orientation_score(blobs, row_sizes)
+        if best is None or score < best[0]:
+            best = (score, rot, blobs, row_sizes)
+        if score <= 3:          # looks like a correct calibration sheet - stop trying
+            break
+    return best[2], best[3], best[1]
 
 
 def _hw_detect_rows(binary, min_row_height=10, gap_threshold_ratio=0.003, vertical_bridge_px=20):
@@ -1415,15 +1457,12 @@ def segment_handwriting():
         return {"error": "Empty filename"}, 400
  
     try:
-        image_bytes = file.read()
-        img, binary = _hw_load_and_binarize(image_bytes)
+         image_bytes = file.read()
+         all_blobs, row_sizes, rotation_used = _hw_segment_auto(image_bytes, request.form.get("rotate"))
     except Exception as e:
-        return {"error": f"Could not read image: {e}"}, 400
- 
-    scale = binary.shape[1] / 1000.0
- 
-    # new: strokes -> attach dots -> tilt-aware line grouping -> reading order
-    all_blobs, row_sizes = segment_blobs(binary, scale)
+         return {"error": f"Could not read image: {e}"}, 400
+    
+    
  
     detected = len(all_blobs)
     expected = len(HANDWRITING_EXPECTED_SEQUENCE)
@@ -1433,7 +1472,7 @@ def segment_handwriting():
         encoded = _hw_crop_to_base64_png(blob["crop"])
         if encoded:
             glyphs[expected_char] = encoded
- 
+    ordered_blobs = [_hw_crop_to_base64_png(b["crop"]) or None for b in all_blobs]
     gc.collect()
     missing = [c for c in HANDWRITING_EXPECTED_SEQUENCE if c not in glyphs]
     print("detected:", detected, "| rows:", row_sizes, "| missing:", missing)
@@ -1443,9 +1482,40 @@ def segment_handwriting():
         "detected_count": detected,
         "expected_count": expected,
         "row_sizes": row_sizes,      # handy for debugging, e.g. [15, 11, 15, 11, 10, 7]
+        "blobs": ordered_blobs,      # reading-order list, labels are assigned on the frontend
         "glyphs": glyphs,
+        "rotation": rotation_used,
     }
  
+from hw_generate import generate_pdf, glyphs_from_request, load_dev_glyphs, MAX_CHARS
+
+@app.route("/generate-handwriting", methods=["POST"])
+def generate_handwriting():
+    data = request.get_json(silent=True) or {}
+    text = (data.get("text") or "").strip()
+    if not text:
+        return {"error": "No text"}, 400
+    if len(text) > MAX_CHARS:
+        return {"error": f"Text too long (max {MAX_CHARS} characters)"}, 400
+
+    try:
+        glyphs = glyphs_from_request(data.get("glyphs")) or load_dev_glyphs()
+        pdf, info = generate_pdf(
+            text, glyphs,
+            tone=data.get("tone", "photo"),
+            style=data.get("style", "plain"),
+            photo_effect=bool(data.get("photo_effect", True)),
+            pen_boost=float(data.get("pen_boost", 1.1)),
+            slant_deg=float(data.get("slant_deg", 0)),
+            clean_dots=bool(data.get("clean_dots", False)),
+        )
+    except Exception as e:
+        return {"error": f"Could not generate: {e}"}, 500
+
+    resp = Response(pdf, mimetype="application/pdf")
+    resp.headers["Content-Disposition"] = 'attachment; filename="handwriting.pdf"'
+    resp.headers["X-Pages"] = str(info["page_count"])
+    return resp
 
 
 

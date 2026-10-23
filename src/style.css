@@ -849,21 +849,75 @@ body.dark .cat-pill.active {
   transform: scale(1.08);
 }
 
-.icon-indigo  { background: rgba(79, 70, 229, 0.12); color: #4f46e5; }
-.icon-blue    { background: rgba(37, 99, 235, 0.12); color: #2563eb; }
-.icon-purple  { background: rgba(147, 51, 234, 0.12); color: #9333ea; }
-.icon-rose    { background: rgba(225, 29, 72, 0.12); color: #e11d48; }
-.icon-emerald { background: rgba(16, 185, 129, 0.12); color: #10b981; }
-.icon-amber   { background: rgba(217, 119, 6, 0.12); color: #d97706; }
-.icon-sky     { background: rgba(2, 132, 199, 0.12); color: #0284c7; }
+.icon-indigo {
+  background: rgba(79, 70, 229, 0.12);
+  color: #4f46e5;
+}
 
-body.dark .icon-indigo  { color: #a5b4fc; background: rgba(99, 102, 241, 0.22); }
-body.dark .icon-blue    { color: #93c5fd; background: rgba(37, 99, 235, 0.22); }
-body.dark .icon-purple  { color: #d8b4fe; background: rgba(168, 85, 247, 0.22); }
-body.dark .icon-rose    { color: #fda4af; background: rgba(244, 63, 94, 0.22); }
-body.dark .icon-emerald { color: #6ee7b7; background: rgba(16, 185, 129, 0.22); }
-body.dark .icon-amber   { color: #fde047; background: rgba(245, 158, 11, 0.22); }
-body.dark .icon-sky     { color: #7dd3fc; background: rgba(14, 165, 233, 0.22); }
+.icon-blue {
+  background: rgba(37, 99, 235, 0.12);
+  color: #2563eb;
+}
+
+.icon-purple {
+  background: rgba(147, 51, 234, 0.12);
+  color: #9333ea;
+}
+
+.icon-rose {
+  background: rgba(225, 29, 72, 0.12);
+  color: #e11d48;
+}
+
+.icon-emerald {
+  background: rgba(16, 185, 129, 0.12);
+  color: #10b981;
+}
+
+.icon-amber {
+  background: rgba(217, 119, 6, 0.12);
+  color: #d97706;
+}
+
+.icon-sky {
+  background: rgba(2, 132, 199, 0.12);
+  color: #0284c7;
+}
+
+body.dark .icon-indigo {
+  color: #a5b4fc;
+  background: rgba(99, 102, 241, 0.22);
+}
+
+body.dark .icon-blue {
+  color: #93c5fd;
+  background: rgba(37, 99, 235, 0.22);
+}
+
+body.dark .icon-purple {
+  color: #d8b4fe;
+  background: rgba(168, 85, 247, 0.22);
+}
+
+body.dark .icon-rose {
+  color: #fda4af;
+  background: rgba(244, 63, 94, 0.22);
+}
+
+body.dark .icon-emerald {
+  color: #6ee7b7;
+  background: rgba(16, 185, 129, 0.22);
+}
+
+body.dark .icon-amber {
+  color: #fde047;
+  background: rgba(245, 158, 11, 0.22);
+}
+
+body.dark .icon-sky {
+  color: #7dd3fc;
+  background: rgba(14, 165, 233, 0.22);
+}
 
 .card-top-meta {
   display: flex;
@@ -1192,6 +1246,7 @@ body.dark #feedbackForm textarea {
   .tool-grid {
     grid-template-columns: repeat(2, 1fr);
   }
+
   .navbar-links {
     display: none;
   }

@@ -7,6 +7,7 @@ const HW_API = window.location.hostname === "localhost"
 
 let selectedFile = null;
 let lastResult = null;
+let blobs = [];
 
 const EXPECTED_SEQUENCE = [
     ..."abcdefghijklmnopqrstuvwxyz",
@@ -184,15 +185,11 @@ export function initHandwritingCalibrationView() {
 
             lastResult = result;
 
-            reviewSection.innerHTML =
-                renderHwReviewGrid(
-                    result.glyphs,
-                    EXPECTED_SEQUENCE,
-                    result.detected_count,
-                    result.expected_count
-                );
+            blobs = Array.isArray(result.blobs)
+                ? [...result.blobs]
+                : EXPECTED_SEQUENCE.map(char => result.glyphs[char] || null);
 
-            wireReviewButtons();
+            renderReview();
 
             reviewSection.scrollIntoView({
                 behavior: "smooth"
@@ -217,30 +214,54 @@ export function initHandwritingCalibrationView() {
     }
 
 
+        function renderReview() {
+
+        reviewSection.innerHTML =
+            renderHwReviewGrid(blobs, EXPECTED_SEQUENCE);
+
+        wireReviewButtons();
+
+    }
+
+
     function wireReviewButtons() {
 
-        const confirmBtn =
-            document.getElementById("hwConfirmBtn");
+        const confirmBtn = document.getElementById("hwConfirmBtn");
+        const retakeBtn = document.getElementById("hwRetakeBtn");
 
-        const retakeBtn =
-            document.getElementById("hwRetakeBtn");
-
-        confirmBtn.addEventListener(
-            "click",
-            saveHandwriting
-        );
+        confirmBtn.addEventListener("click", saveHandwriting);
 
         retakeBtn.addEventListener("click", () => {
 
             reviewSection.innerHTML = "";
-
             fileInfo.innerHTML = "";
-
             selectedFile = null;
-
             lastResult = null;
-
+            blobs = [];
             processBtn.disabled = true;
+
+        });
+
+        reviewSection.querySelectorAll("[data-hw-action]").forEach(btn => {
+
+            btn.addEventListener("click", () => {
+
+                const index = Number(btn.dataset.index);
+
+                if (btn.dataset.hwAction === "delete") {
+
+                    if (index < blobs.length) blobs.splice(index, 1);
+
+                } else {
+
+                    while (blobs.length < index) blobs.push(null);
+                    blobs.splice(index, 0, null);
+
+                }
+
+                renderReview();
+
+            });
 
         });
 
@@ -249,7 +270,19 @@ export function initHandwritingCalibrationView() {
 
     async function saveHandwriting() {
 
-        if (!lastResult) return;
+                const glyphs = {};
+
+        EXPECTED_SEQUENCE.forEach((char, i) => {
+            if (blobs[i]) glyphs[char] = blobs[i];
+        });
+
+        if (
+            blobs.length !== EXPECTED_SEQUENCE.length ||
+            Object.keys(glyphs).length !== EXPECTED_SEQUENCE.length
+        ) {
+            showToast("Please fix the highlighted boxes first", "error");
+            return;
+        }
 
         const confirmBtn =
             document.getElementById("hwConfirmBtn");
@@ -270,7 +303,7 @@ export function initHandwritingCalibrationView() {
                             "Content-Type": "application/json"
                         },
                         body: JSON.stringify({
-                            glyphs: lastResult.glyphs
+                            glyphs
                         })
                     }
                 );

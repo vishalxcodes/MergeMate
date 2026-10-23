@@ -23,3 +23,19 @@ dist-ssr
 *.sln
 *.sw?
 .env
+debug_*.png
+# Python
+venv/
+__pycache__/
+*.pyc
+
+# handwriting generator: test outputs and personal data
+pdf-to-docx-service/result_*
+pdf-to-docx-service/compare_*
+pdf-to-docx-service/glyph_audit_*
+pdf-to-docx-service/seg*.json
+pdf-to-docx-service/seg*.bad
+pdf-to-docx-service/*.jpg
+pdf-to-docx-service/out.pdf
+pdf-to-docx-service/page_1.png
+pdf-to-docx-service/friend*

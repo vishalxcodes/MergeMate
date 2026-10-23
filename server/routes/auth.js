@@ -94,12 +94,14 @@ router.post("/google", async (req, res) => {
 
     let user = await User.findOne({ email });
 
-    res.cookie("token", token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-    maxAge: 7 * 24 * 60 * 60 * 1000,
-  });
+    if (!user) {
+      user = await User.create({
+        name,
+        email,
+        googleId,
+        authProvider: "google",
+      });
+    }
 
     const JWT_SECRET = process.env.JWT_SECRET;
     const token = jwt.sign({ id: user._id }, JWT_SECRET, { expiresIn: "7d" });
@@ -107,11 +109,14 @@ router.post("/google", async (req, res) => {
     res.cookie("token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-    res.status(200).json({ message: "Google login successful", user: { id: user._id, name: user.name, email: user.email } });
+    res.status(200).json({
+      message: "Google login successful",
+      user: { id: user._id, name: user.name, email: user.email },
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Google login failed" });

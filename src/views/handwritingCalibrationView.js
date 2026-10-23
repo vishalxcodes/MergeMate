@@ -79,6 +79,9 @@ export function renderHandwritingCalibrationView() {
                 Process Photo
 
             </button>
+             <button class="converter-action-btn hw-secondary-btn" data-tool="handwriting-generate">
+          Already saved? Write an assignment →
+              </button>
 
             <div id="hwReviewSection"></div>
 
@@ -89,54 +92,74 @@ export function renderHandwritingCalibrationView() {
 }
 
 
-export function renderHwReviewGrid(glyphs, expectedSequence, detectedCount, expectedCount) {
+export function renderHwReviewGrid(blobs, expectedSequence) {
 
-    const gridItems = expectedSequence.map(char => {
+    const expectedCount = expectedSequence.length;
+    const total = Math.max(blobs.length, expectedCount);
 
-        const glyphBase64 = glyphs[char];
+    const blankCount = blobs.filter(b => !b).length;
+    const missingCount = blankCount + Math.max(0, expectedCount - blobs.length);
+    const extraCount = Math.max(0, blobs.length - expectedCount);
+    const statusOk = missingCount === 0 && extraCount === 0;
 
-        const label = char === " " ? "space" : char;
+    let cells = "";
 
-        return `
+    for (let i = 0; i < total; i++) {
 
-            <div class="hw-glyph-cell ${glyphBase64 ? "" : "hw-glyph-missing"}">
+        const blob = blobs[i];
+        const char = expectedSequence[i];
+        const label = char === undefined ? "extra" : char;
+
+        const cellClass = [
+            "hw-glyph-cell",
+            !blob ? "hw-glyph-missing" : "",
+            char === undefined ? "hw-glyph-extra" : ""
+        ].join(" ");
+
+        cells += `
+
+            <div class="${cellClass}">
 
                 <div class="hw-glyph-img">
                     ${
-                        glyphBase64
-                            ? `<img src="data:image/png;base64,${glyphBase64}" alt="${label}">`
+                        blob
+                            ? `<img src="data:image/png;base64,${blob}" alt="${label}">`
                             : `<span class="hw-glyph-missing-mark">?</span>`
                     }
                 </div>
 
-                <div class="hw-glyph-label">
-                    ${label}
+                <div class="hw-glyph-label">${label}</div>
+
+                <div class="hw-cell-actions">
+                    <button class="hw-cell-btn" data-hw-action="delete" data-index="${i}"
+                        title="Remove this box (boxes after it move back by one)">✕</button>
+                    <button class="hw-cell-btn" data-hw-action="insert" data-index="${i}"
+                        title="Insert an empty slot here (boxes after it move forward by one)">＋</button>
                 </div>
 
             </div>
 
         `;
+    }
 
-    }).join("");
+    let statusText = "All characters are in place. Please check each box below carefully.";
 
-    const statusOk = detectedCount === expectedCount;
+    if (extraCount > 0) {
+        statusText = `${extraCount} extra box(es) at the end. Remove wrong or noise boxes with ✕ until every box matches its letter.`;
+    } else if (missingCount > 0) {
+        statusText = `${missingCount} character(s) missing. If a letter was not detected, press ＋ at the place where it should be, so the rest line up. Missing letters need a retake.`;
+    }
 
     return `
 
         <div class="hw-review-section">
 
             <div class="hw-review-status ${statusOk ? "hw-status-ok" : "hw-status-warn"}">
-
-                ${
-                    statusOk
-                        ? "All characters detected. Please check each box below carefully."
-                        : `Detected ${detectedCount} of ${expectedCount} characters. Please review carefully - some may be missing, merged, or misaligned below.`
-                }
-
+                ${statusText}
             </div>
 
             <div class="hw-glyph-grid">
-                ${gridItems}
+                ${cells}
             </div>
 
             <div class="hw-review-question">
@@ -145,7 +168,7 @@ export function renderHwReviewGrid(glyphs, expectedSequence, detectedCount, expe
 
             <div class="hw-review-actions">
 
-                <button id="hwConfirmBtn" class="converter-action-btn">
+                <button id="hwConfirmBtn" class="converter-action-btn" ${statusOk ? "" : "disabled"}>
                     Yes, Save My Handwriting
                 </button>
 

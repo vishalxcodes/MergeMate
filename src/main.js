@@ -58,7 +58,8 @@ import { renderSignup, renderLogin } from "./views/authView.js";
 import { initSignup, initLogin } from "./controllers/authController.js";
 import { renderHandwritingCalibrationView } from "./views/handwritingCalibrationView";
 import { initHandwritingCalibrationView } from "./controllers/handwritingCalibrationController";
-
+import { renderHandwritingGeneratorView } from "./views/handwritingGeneratorView";
+import { initHandwritingGeneratorView } from "./controllers/handwritingGeneratorController";
 
 
 
@@ -423,6 +424,10 @@ if (e.target.closest('[data-tool="handwriting-calibration"]')) {
 
     initHandwritingCalibrationView();
 
+}
+if (e.target.closest('[data-tool="handwriting-generate"]')) {
+    app.innerHTML = renderHandwritingGeneratorView();
+    initHandwritingGeneratorView();
 }
 });
 // Search filter
