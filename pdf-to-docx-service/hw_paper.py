@@ -104,7 +104,7 @@ def camera_effect(img, seed=None):
     M = cv2.getRotationMatrix2D((w / 2.0, h / 2.0), float(rng.uniform(-0.5, 0.5)), 1.0)
     arr = cv2.warpAffine(arr, M, (w, h), flags=cv2.INTER_CUBIC, borderMode=cv2.BORDER_REPLICATE)
     arr = cv2.GaussianBlur(arr, (0, 0), 0.5)
-    arr += rng.normal(0, 1.0, arr.shape).astype(np.float32)
+    arr += rng.standard_normal(arr.shape, dtype=np.float32)
 
     out = Image.fromarray(np.clip(arr, 0, 255).astype(np.uint8))
     buf = io.BytesIO()

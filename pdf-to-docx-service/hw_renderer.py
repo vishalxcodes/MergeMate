@@ -16,12 +16,12 @@ import io
 import math
 import random
 import re
-
+import os
 import cv2
 import numpy as np
 from PIL import Image, ImageDraw
 
-DPI = 200
+DPI = int(os.environ.get("HW_DPI", "200"))
 MM = DPI / 25.4
 
 DEFAULT_CFG = {
