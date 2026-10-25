@@ -5,6 +5,9 @@ const HW_API = window.location.hostname === "localhost"
 let lastUrl = null;
 
 export function initHandwritingGeneratorView() {
+// Node server soya ho to page khulte hi jaga do (jawab ignore)
+    fetch(`${HW_API}/me`, { credentials: "include" }).catch(() => {});
+    
     const textEl = document.getElementById("hwGenText");
     const countEl = document.getElementById("hwGenCount");
     const btn = document.getElementById("hwGenBtn");
