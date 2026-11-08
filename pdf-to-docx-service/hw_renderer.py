@@ -59,6 +59,8 @@ LOWER = set("abcdefghijklmnopqrstuvwxyz")
 # fraction of the glyph's own height that hangs below the baseline
 DESCEND = {"f": 0.45, "g": 0.36, "j": 0.30, "p": 0.36, "q": 0.36, "y": 0.36, ",": 0.5}
 _ELL3 = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))
+class PageLimitError(Exception):
+    pass
 
 
 def _decode_mask(b64):
@@ -331,7 +333,7 @@ def _draw_loop(page, box, width, color, rnd, S=4):
     page.paste(color, (left, top), mask.resize((w, h), Image.LANCZOS))
 
 
-def render_pages(glyphs_b64, parsed, seed=None, cfg=None):
+def render_pages(glyphs_b64, parsed, seed=None, cfg=None, on_page=None, max_pages=None):
     c = dict(DEFAULT_CFG)
     if cfg:
         c.update(cfg)
@@ -354,9 +356,18 @@ def render_pages(glyphs_b64, parsed, seed=None, cfg=None):
 
     pages = []
 
+    state = {"n": 0}
+
     def new_page():
+        if on_page is not None and pages and pages[-1] is not None:
+            on_page(pages[-1], {"base0": top_base, "line_height": c["line_height"],
+                                "margin_left": c["margin_left"]})
+            pages[-1] = None                    # finished page is freed
+        if max_pages and state["n"] >= max_pages:
+            raise PageLimitError(max_pages)
         im = Image.new("RGB", (int(c["page_w"]), int(c["page_h"])), (255, 255, 255))
         pages.append(im)
+        state["n"] += 1
         return im
 
     page = new_page()
@@ -577,10 +588,15 @@ def render_pages(glyphs_b64, parsed, seed=None, cfg=None):
                 draw_line(planned_right, rx, base)
 
             base = next_base(base)
+            
+            if on_page is not None and pages and pages[-1] is not None:
+                on_page(pages[-1], {"base0": top_base, "line_height": c["line_height"],
+                                    "margin_left": c["margin_left"]})
+                pages[-1] = None
 
     return pages, {
         "skipped": sorted(skipped),
-        "page_count": len(pages),
+        "page_count": state["n"],
         "base0": top_base,
         "line_height": c["line_height"],
         "margin_left": c["margin_left"],

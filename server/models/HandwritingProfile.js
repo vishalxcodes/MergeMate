@@ -17,6 +17,7 @@ const handwritingProfileSchema = new mongoose.Schema(
       unique: true, // one profile per user; re-calibrating overwrites it
     },
     glyphs: { type: [glyphSchema], default: [] },
+    settings: { type: mongoose.Schema.Types.Mixed, default: {} },
   },
   { timestamps: true }
 );

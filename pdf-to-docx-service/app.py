@@ -1,6 +1,7 @@
 from flask import Flask, request, send_file, Response
 from pdf2docx import Converter
 import os
+import json
 import uuid
 import tempfile
 import pdfplumber
@@ -20,7 +21,8 @@ from pptx.enum.text import PP_ALIGN, MSO_ANCHOR
 from PIL import Image
 import io
 from hw_segmenter import segment_blobs, orientation_score
-from hw_generate import generate_pdf, glyphs_from_request, load_dev_glyphs, MAX_CHARS
+from hw_generate import generate_pdf, glyphs_from_request, load_dev_glyphs, MAX_CHARS, PREVIEW_CHARS
+from hw_settings import clean_settings, clean_seed
 
 
 
@@ -1487,7 +1489,12 @@ def segment_handwriting():
         "rotation": rotation_used,
     }
  
-from hw_generate import generate_pdf, glyphs_from_request, load_dev_glyphs, MAX_CHARS
+
+
+# --- app.py: top par imports mein ye do jodo (baaki imports waise hi) ---
+# from hw_generate import generate_pdf, glyphs_from_request, load_dev_glyphs, MAX_CHARS, PREVIEW_CHARS
+# from hw_settings import clean_settings, clean_seed
+
 
 @app.route("/generate-handwriting", methods=["POST"])
 def generate_handwriting():
@@ -1498,6 +1505,17 @@ def generate_handwriting():
     if len(text) > MAX_CHARS:
         return {"error": f"Text too long (max {MAX_CHARS} characters)"}, 400
 
+    # preview = sirf shuruaat ka hissa, taaki sliders hilane par jaldi dikhe
+    preview = bool(data.get("preview", False))
+    if preview:
+        text = text[:PREVIEW_CHARS]
+
+    # user ke sliders: sirf allowed keys, har value apni range mein. Purane top-level pen_boost / slant_deg bhi chalte hain.
+    settings = clean_settings(
+        data.get("settings"),
+        legacy={"pen_boost": data.get("pen_boost"), "slant_deg": data.get("slant_deg")},
+    )
+
     try:
         glyphs = glyphs_from_request(data.get("glyphs")) or load_dev_glyphs()
         pdf, info = generate_pdf(
@@ -1505,16 +1523,20 @@ def generate_handwriting():
             tone=data.get("tone", "photo"),
             style=data.get("style", "plain"),
             photo_effect=bool(data.get("photo_effect", True)),
-            pen_boost=float(data.get("pen_boost", 1.1)),
-            slant_deg=float(data.get("slant_deg", 0)),
             clean_dots=bool(data.get("clean_dots", False)),
+            seed=clean_seed(data.get("seed"), 1),
+            settings=settings,
+            preview_image=preview,
         )
     except Exception as e:
         return {"error": f"Could not generate: {e}"}, 500
 
-    resp = Response(pdf, mimetype="application/pdf")
-    resp.headers["Content-Disposition"] = 'attachment; filename="handwriting.pdf"'
+    mime = info.get("mime", "application/pdf")           # preview = JPEG of the first page, otherwise the PDF
+    resp = Response(pdf, mimetype=mime)
+    resp.headers["Content-Disposition"] = (
+        'inline; filename="preview.jpg"' if mime == "image/jpeg" else 'attachment; filename="handwriting.pdf"')
     resp.headers["X-Pages"] = str(info["page_count"])
+    resp.headers["X-Settings"] = json.dumps(settings)      # frontend ko pata chale ki asal mein kya lagu hua
     return resp
 
 

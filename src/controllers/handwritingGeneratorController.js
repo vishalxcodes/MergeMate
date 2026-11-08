@@ -1,3 +1,4 @@
+import { createStylePanel } from "./handwritingStylePanel.js";
 const HW_API = window.location.hostname === "localhost"
     ? "http://localhost:3000/api/handwriting"
     : "https://mergemate-emgy.onrender.com/api/handwriting";
@@ -14,7 +15,7 @@ export function initHandwritingGeneratorView() {
     const result = document.getElementById("hwGenResult");
 
     textEl.addEventListener("input", () => {
-        countEl.textContent = `${textEl.value.length} / 6000`;
+        countEl.textContent = `${textEl.value.length} / 10000`;
         btn.disabled = textEl.value.trim().length === 0;
     });
 
@@ -50,11 +51,26 @@ function prepareText(raw) {
         .map(l => (isQuestion.test(l) && !l.startsWith("## ")) ? "## " + l.trimStart() : l)
         .join("\n");
 }
+    const panel = createStylePanel({
+        api: HW_API,
+        resultEl: result,
+        getText: () => prepareText(textEl.value),
+        getTone: () => document.getElementById("hwGenTone").value,
+        getStyle: () => document.getElementById("hwGenStyle").value,
+        penEl: document.getElementById("hwGenPen"),
+        toast: showToast,
+    });
+    // Node server soya ho to page khulte hi jaga do + user ki saved style sliders mein
+    fetch(`${HW_API}/me`, { credentials: "include" })
+        .then(r => (r.ok ? r.json() : null))
+        .then(d => { if (d && d.settings) panel.applySaved(d.settings); })
+        .catch(() => {});
 
     btn.addEventListener("click", async () => {
         btn.disabled = true;
         btn.textContent = "Generating... (10-30 sec)";
         result.innerHTML = "";
+        panel.show();
 
         try {
             const res = await fetch(`${HW_API}/generate`, {
@@ -65,7 +81,8 @@ function prepareText(raw) {
                     text: prepareText(textEl.value),
                     tone: document.getElementById("hwGenTone").value,
                     style: document.getElementById("hwGenStyle").value,
-                    pen_boost: Number(document.getElementById("hwGenPen").value),
+                    settings: panel.getSettings(),
+                    seed: panel.getSeed(),
                 }),
             });
 
@@ -80,6 +97,7 @@ function prepareText(raw) {
             lastUrl = URL.createObjectURL(blob);
 
             result.innerHTML = `
+            
                 <div class="converter-selected-file">
                     ✅ <strong>Your assignment is ready</strong>
                 </div>

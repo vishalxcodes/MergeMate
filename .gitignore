@@ -39,3 +39,6 @@ pdf-to-docx-service/*.jpg
 pdf-to-docx-service/out.pdf
 pdf-to-docx-service/page_1.png
 pdf-to-docx-service/friend*
+writers/
+*.pdf
+seg*.json
