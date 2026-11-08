@@ -9,9 +9,9 @@ export function renderHandwritingGeneratorView() {
                 <p>Paste your text and get it back in your own handwriting</p>
             </div>
 
-            <textarea id="hwGenText" class="hw-gen-text" rows="12" maxlength="6000"
+            <textarea id="hwGenText" class="hw-gen-text" rows="12" maxlength="10000"
                 placeholder="Type or paste your assignment here..."></textarea>
-            <div id="hwGenCount" class="converter-file-info">0 / 3000</div>
+            <div id="hwGenCount" class="converter-file-info">0 / 10000</div>
             <div class="hw-gen-toolbar">
     <button type="button" id="hwGenHeadingBtn" class="converter-action-btn hw-secondary-btn">
         ■ Black pen for this line
