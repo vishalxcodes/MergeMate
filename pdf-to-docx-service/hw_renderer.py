@@ -588,11 +588,11 @@ def render_pages(glyphs_b64, parsed, seed=None, cfg=None, on_page=None, max_page
                 draw_line(planned_right, rx, base)
 
             base = next_base(base)
-            
-            if on_page is not None and pages and pages[-1] is not None:
-                on_page(pages[-1], {"base0": top_base, "line_height": c["line_height"],
-                                    "margin_left": c["margin_left"]})
-                pages[-1] = None
+
+    if on_page is not None and pages and pages[-1] is not None:
+        on_page(pages[-1], {"base0": top_base, "line_height": c["line_height"],
+                            "margin_left": c["margin_left"]})
+        pages[-1] = None
 
     return pages, {
         "skipped": sorted(skipped),
