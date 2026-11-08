@@ -20,7 +20,8 @@ import os
 import cv2
 import numpy as np
 from PIL import Image, ImageDraw
-
+from types import SimpleNamespace
+from hw_table import draw_table
 DPI = int(os.environ.get("HW_DPI", "200"))
 MM = DPI / 25.4
 
@@ -528,6 +529,18 @@ def render_pages(glyphs_b64, parsed, seed=None, cfg=None, on_page=None, max_page
                                 sag=rnd.uniform(-0.01, 0.01) * (xb - xa))
         return x - last_space
 
+    def _next_page():
+        nonlocal page
+        page = new_page()
+        return page
+
+    table_env = SimpleNamespace(
+        left=c["margin_left"], right_lim=right - safety, xh=xh, cap_h=cap_h,
+        line_height=c["line_height"], stroke_w=stroke_w, black=c["black"],
+        bottom_limit=bottom_limit, top_base=top_base, rnd=rnd,
+        to_words=to_words, plan_line=plan_line, draw_line=draw_line,
+        get_page=lambda: page, next_page=_next_page, connector=_draw_connector)
+
     def next_base(b, factor=1.0):
         jitter = 0.0 if ruled else rnd.uniform(-c["line_jitter"], c["line_jitter"])
         return b + c["line_height"] * factor * (1.0 + jitter)
@@ -539,6 +552,9 @@ def render_pages(glyphs_b64, parsed, seed=None, cfg=None, on_page=None, max_page
 
         if ln.get("tight") and base > top_base + 1 and not ruled:     # "[t]" lines: closer to the line above
             base -= 0.28 * c["line_height"]
+        if ln.get("table"):
+            base = draw_table(ln["table"], base, table_env)
+            continue
 
         words = to_words(ln["spans"])
         right_words = to_words(ln["right"]) if ln.get("right") else []
