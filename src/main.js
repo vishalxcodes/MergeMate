@@ -65,22 +65,24 @@ import { initHandwritingGeneratorView } from "./controllers/handwritingGenerator
 
 
 const app = document.querySelector("#app");
-export async function checkLoggedIn() {
-  try {
-    const res = await fetch(`${AUTH_API}/me`, {
-      credentials: "include",
-    });
-
-    if (!res.ok) {
-      updateNavbarForLoggedOut();
-      return;
+export async function checkLoggedIn(retries = 3) {
+  for (let i = 0; i <= retries; i++) {
+    try {
+      const res = await fetch(`${AUTH_API}/me`, { credentials: "include" });
+      if (res.ok) {
+        updateNavbarForLoggedIn((await res.json()).user);
+        return;
+      }
+      if (res.status === 401 || res.status === 403) {      // genuinely logged out
+        updateNavbarForLoggedOut();
+        return;
+      }
+    } catch (err) {
+      // server is waking up (Render cold start) - try again below
     }
-
-    const data = await res.json();
-    updateNavbarForLoggedIn(data.user);
-  } catch (err) {
-    updateNavbarForLoggedOut();
+    await new Promise((r) => setTimeout(r, 4000));
   }
+  updateNavbarForLoggedOut();
 }
 
 function updateNavbarForLoggedIn(user) {
