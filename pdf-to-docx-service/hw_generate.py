@@ -12,6 +12,7 @@ from hw_parser import parse
 from hw_renderer import render_pages, pages_to_pdf_bytes, DPI, normalize_glyph_sheet, DEFAULT_CFG, PageLimitError
 from hw_paper import make_paper, composite, camera_effect
 from hw_settings import settings_to_cfg
+from hw_clean import clean_text          # imports ke saath
 
 try:
     import fitz  # PyMuPDF (app.py already needs it)
@@ -180,6 +181,7 @@ def generate_pdf(text, glyphs, tone="photo", style="plain", photo_effect=True,
 
 def _generate_pdf(text, glyphs, tone, style, photo_effect, pen_boost, slant_deg, clean_dots,
                   black_leadins, seed, settings, preview_image):
+    text = clean_text(text)
     parsed = parse(text)
     if black_leadins:
         parsed = blacken_leadins(parsed)

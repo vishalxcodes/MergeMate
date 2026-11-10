@@ -1,4 +1,5 @@
 import { createStylePanel } from "./handwritingStylePanel.js";
+import { attachTablePaste } from "./handwritingPaste.js"; 
 const HW_API = window.location.hostname === "localhost"
     ? "http://localhost:3000/api/handwriting"
     : "https://mergemate-emgy.onrender.com/api/handwriting";
@@ -8,9 +9,10 @@ let lastUrl = null;
 export function initHandwritingGeneratorView() {
 // Node server soya ho to page khulte hi jaga do (jawab ignore)
     fetch(`${HW_API}/me`, { credentials: "include" }).catch(() => {});
-    
+        
     const textEl = document.getElementById("hwGenText");
     const countEl = document.getElementById("hwGenCount");
+    attachTablePaste(textEl); 
     const btn = document.getElementById("hwGenBtn");
     const result = document.getElementById("hwGenResult");
 

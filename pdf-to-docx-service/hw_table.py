@@ -8,6 +8,7 @@ env = object with these attributes (hw_renderer fills them in from its own closu
     left, right_lim            x range the table may use (right_lim already includes the right safety gap)
     xh, cap_h, line_height     font metrics in px
     stroke_w, black            pen thickness and ink colour for the grid
+    borders (optional)         True (default) = hand-drawn grid, False = only spacing between columns
     bottom_limit, top_base     page geometry (px)
     rnd                        random.Random
     to_words(spans)            -> words (as used by hw_renderer)
@@ -83,9 +84,11 @@ def draw_table(tbl, base_in, env):
     row_top = base_in - top_off
     seg = {"bounds": [row_top], "first": True}
 
+    borders = getattr(e, "borders", True)         # False = plain aligned columns, no grid lines
+
     def finish_segment():
         ys = seg["bounds"]
-        if len(ys) < 2:
+        if len(ys) < 2 or not borders:
             return
         pg = e.get_page()
         xl, xr = x_edges[0], x_edges[-1]

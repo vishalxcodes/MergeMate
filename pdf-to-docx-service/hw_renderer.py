@@ -52,6 +52,7 @@ DEFAULT_CFG = {
     "right_safety": 0.5,        # NEW: keep this much (x_height) free before the right margin (underline/rotation slack)
     "clean_dots": False,        # NEW: redraw the full stop (and so ':' and the bullet) as a clean round dot instead of the ragged scanned one
     "slant_deg": 0.0,           # NEW: lean every letter to the right by this angle (running handwriting leans; calibration letters are upright). Try 8-12
+    "table_borders": False,     
 }
 
 X_HEIGHT_CHARS = "acemnorsuvwxz"
@@ -535,6 +536,7 @@ def render_pages(glyphs_b64, parsed, seed=None, cfg=None, on_page=None, max_page
         return page
 
     table_env = SimpleNamespace(
+        borders=c["table_borders"],
         left=c["margin_left"], right_lim=right - safety, xh=xh, cap_h=cap_h,
         line_height=c["line_height"], stroke_w=stroke_w, black=c["black"],
         bottom_limit=bottom_limit, top_base=top_base, rnd=rnd,
