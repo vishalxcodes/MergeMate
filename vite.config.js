@@ -5,6 +5,7 @@ export default defineConfig({
   plugins: [
     VitePWA({
       registerType: "autoUpdate",
+      filename: "pwa-sw.js",
 
       includeAssets: [
         "favicon-32.png",
@@ -47,6 +48,9 @@ export default defineConfig({
 
       workbox: {
         globPatterns: ["**/*.{js,css,html,png,svg,ico,webmanifest}"],
+        importScripts: ["sw.js"],
+        globIgnores: ["sw.js"],
+        navigateFallbackDenylist: [/^\/sw\.js$/, /^\/robots\.txt$/, /^\/sitemap\.xml$/, /^\/privacy\.html$/, /^\/ads\.txt$/],
 
         runtimeCaching: [
           {
