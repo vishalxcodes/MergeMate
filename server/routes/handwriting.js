@@ -29,6 +29,7 @@ const SETTING_LIMITS = {
   word_gap: [0.8, 2.0], //  space between words
   size: [0.85, 1.15], //    1 = default letter size
 };
+const BOOL_SETTINGS = ["table_borders"]; // on/off switches
 const MAX_SEED = 9999;
 const NUMBER_RE = /^\s*[-+]?(\d+\.?\d*|\.\d+)([eE][-+]?\d+)?\s*$/;
 const PREVIEW_COOLDOWN_MS = 600; // one preview render at a time per user keeps the free Render instance alive
@@ -50,6 +51,9 @@ export function cleanSettings(raw) {
     if (!(key in raw)) continue;
     const n = toNumber(raw[key]);
     if (n !== null) out[key] = Math.min(hi, Math.max(lo, n));
+  }
+  for (const key of BOOL_SETTINGS) {
+    if (typeof raw[key] === "boolean") out[key] = raw[key];
   }
   return out;
 }

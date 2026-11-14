@@ -26,6 +26,7 @@ const CSS = `
 .hw-style-row input[type=range]{width:100%}
 .hw-style-val{text-align:right;font-variant-numeric:tabular-nums;opacity:.85}
 .hw-style-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.hw-style-check{display:flex;align-items:center;gap:8px;margin:12px 0 0;font-size:.95rem}
 @media (max-width:520px){.hw-style-row{grid-template-columns:1fr 52px}.hw-style-row label{grid-column:1/3}}
 `;
 
@@ -58,6 +59,7 @@ export function createStylePanel({
     <p class="hw-style-hint">Move a slider and the preview updates by itself.</p>
     <div class="hw-style-preview"><img alt="Preview of the first page" hidden><div class="hw-style-status"></div></div>
     <div class="hw-style-rows"></div>
+    <label class="hw-style-check"><input type="checkbox" data-key="table_borders"> Draw borders on tables</label>
     <div class="hw-style-actions">
       <button type="button" class="converter-action-btn hw-secondary-btn" data-act="reset">Reset</button>
       <button type="button" class="converter-action-btn hw-secondary-btn" data-act="shuffle">Shuffle</button>
@@ -66,6 +68,7 @@ export function createStylePanel({
   const imgEl = panel.querySelector("img");
   const statusEl = panel.querySelector(".hw-style-status");
   const rowsEl = panel.querySelector(".hw-style-rows");
+  const bordersEl = panel.querySelector('[data-key="table_borders"]');
   const inputs = {};
   const valueEls = {};
   for (const c of CONTROLS) {
@@ -88,7 +91,10 @@ export function createStylePanel({
 
   const num = (c) => Number(inputs[c.key].value);
   const refreshLabels = () => CONTROLS.forEach((c) => (valueEls[c.key].textContent = c.fmt(num(c))));
-  const getSettings = () => Object.fromEntries(CONTROLS.map((c) => [c.key, num(c)]));
+    const getSettings = () => ({
+    ...Object.fromEntries(CONTROLS.map((c) => [c.key, num(c)])),
+    table_borders: bordersEl.checked,
+  });
   const getSeed = () => seed;
   const setStatus = (t) => (statusEl.textContent = t || "");
   refreshLabels();
@@ -206,12 +212,13 @@ export function createStylePanel({
       schedulePreview();
     });
   }
-
+  bordersEl.addEventListener("change", schedulePreview);
   panel.addEventListener("click", async (e) => {
     const act = e.target && e.target.getAttribute && e.target.getAttribute("data-act");
     if (act === "reset") {
       for (const c of CONTROLS) setValue(c.key, defaults[c.key]);
       seed = DEFAULT_SEED;
+      bordersEl.checked = false;
       refreshLabels();
       schedulePreview();
     } else if (act === "shuffle") {
@@ -241,6 +248,7 @@ export function createStylePanel({
     applySaved(settings) {
       if (!settings || typeof settings !== "object") return;
       for (const c of CONTROLS) setValue(c.key, settings[c.key]);
+      if (typeof settings.table_borders === "boolean") bordersEl.checked = settings.table_borders;
       refreshLabels();
     },
   };

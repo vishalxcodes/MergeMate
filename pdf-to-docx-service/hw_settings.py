@@ -15,6 +15,7 @@ LIMITS = {
     "word_gap":   (0.8, 2.0),    # space between words, fraction of x_height
     "size":       (0.85, 1.15),  # 1.0 = default letter size
 }
+BOOL_KEYS = ("table_borders",)   # on/off switches (True = draw table borders)
 MAX_SEED = 9999
 
 
@@ -32,7 +33,7 @@ def _number(v):
 def clean_settings(raw, legacy=None):
     """raw: the "settings" object from the request (anything may come).  legacy: older top-level fields
     (pen_boost, slant_deg) - used only when "settings" does not carry that key.
-    Returns {key: float} with only valid keys, each clamped to LIMITS."""
+    Returns {key: value} with only valid keys: numbers clamped to LIMITS, switches as True/False."""
     out = {}
     for src in (legacy if isinstance(legacy, dict) else {}, raw if isinstance(raw, dict) else {}):
         for key, (lo, hi) in LIMITS.items():
@@ -40,6 +41,9 @@ def clean_settings(raw, legacy=None):
                 f = _number(src[key])
                 if f is not None:
                     out[key] = min(hi, max(lo, f))
+        for key in BOOL_KEYS:
+            if key in src and isinstance(src[key], bool):
+                out[key] = src[key]
     return out
 
 
@@ -53,7 +57,7 @@ def clean_seed(v, default=1):
 def settings_to_cfg(settings, default_x_height):
     """Cleaned settings -> the cfg keys of hw_renderer.render_pages."""
     cfg = {}
-    for key in ("slant_deg", "pen_boost", "letter_gap", "word_gap"):
+    for key in ("slant_deg", "pen_boost", "letter_gap", "word_gap", "table_borders"):
         if key in settings:
             cfg[key] = settings[key]
     if "size" in settings:
